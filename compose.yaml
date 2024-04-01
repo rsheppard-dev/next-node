@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: db
+    image: postgres:16
+    restart: always
+    environment:
+      PGHOST: ${PGHOST}}
+      PGDATABASE: ${PGDATABASE}
+      PGUSER: ${PGUSER}
+      PGPASSWORD: ${PGPASSWORD}
+      ENDPOINTID: ${ENDPOINTID}
+    ports:
+      - '5433:5433'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: {}
