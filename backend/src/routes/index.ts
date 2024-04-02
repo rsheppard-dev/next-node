@@ -1,9 +1,9 @@
-import express from 'express';
+import { Router } from 'express';
 import auth from './auth.routes';
 import user from './user.routes';
 import group from './group.routes';
 
-const router = express.Router();
+const router = Router();
 
 router.get('/healthcheck', (_, res) => {
 	res.sendStatus(200);

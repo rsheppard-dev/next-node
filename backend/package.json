@@ -2,11 +2,13 @@
 	"name": "backend",
 	"version": "1.0.0",
 	"description": "",
-	"main": "main.ts",
+	"main": "app.ts",
 	"scripts": {
-		"dev": "tsx watch src/main.ts",
-		"migrate": "drizzle-kit generate:pg",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"dev": "tsx watch src/app.ts",
+		"introspect": "drizzle-kit introspect:pg --config=drizzle.config.ts",
+		"generate": "drizzle-kit generate:pg --config=drizzle.config.ts",
+		"studio": "drizzle-kit studio --config=drizzle.config.ts",
+		"migrate": "tsx -r zennv src/db/migrate.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -15,7 +17,7 @@
 		"@neondatabase/serverless": "^0.9.0",
 		"argon2": "^0.40.1",
 		"drizzle-orm": "^0.30.6",
-		"fastify": "^4.26.2",
+		"express": "^4.19.2",
 		"jsonwebtoken": "^9.0.2",
 		"nodemailer": "^6.9.13",
 		"pg": "^8.11.4",
@@ -32,7 +34,6 @@
 		"@types/pg": "^8.11.4",
 		"drizzle-kit": "^0.20.14",
 		"tsx": "^4.7.1",
-		"typescript": "^5.4.3",
-		"zod-to-json-schema": "^3.22.5"
+		"typescript": "^5.4.3"
 	}
 }

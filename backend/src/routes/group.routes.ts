@@ -1,3 +1,5 @@
-import { FastifyInstance } from 'fastify';
+import { Router } from 'express';
 
-export default async function groupRoutes(app: FastifyInstance) {}
+const router = Router();
+
+export default router;

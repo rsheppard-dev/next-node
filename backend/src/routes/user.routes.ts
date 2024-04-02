@@ -1,35 +1,41 @@
-import { FastifyInstance, FastifySchema } from 'fastify';
+import { Router } from 'express';
 import {
 	createUserHandler,
 	forgotPasswordHandler,
+	getCurrentUserHandler,
 	resetPasswordHandler,
 	verifyUserHandler,
 } from '../controllers/user.controllers';
+import validateResource from '../middleware/validateResource';
 import {
-	createUserJsonSchema,
-	forgotPasswordJsonSchema,
-	resetPasswordJsonSchema,
-	verifyUserJsonSchema,
+	createUserSchema,
+	forgotPasswordSchema,
+	resetPasswordSchema,
+	verifyUserSchema,
 } from '../schemas/user.schemas';
 
-export default async function userRoutes(app: FastifyInstance) {
-	app.post('/', { schema: createUserJsonSchema }, createUserHandler);
+const router = Router();
 
-	app.get(
-		'/verify/:id/:verificationToken',
-		{ schema: verifyUserJsonSchema },
-		verifyUserHandler
-	);
+router.post('/', validateResource(createUserSchema), createUserHandler);
 
-	app.post(
-		'/forgot-password',
-		{ schema: forgotPasswordJsonSchema },
-		forgotPasswordHandler
-	);
+router.get(
+	'/verify/:id/:verificationToken',
+	validateResource(verifyUserSchema),
+	verifyUserHandler
+);
 
-	app.post(
-		'/reset-password/:id/:passwordResetToken',
-		{ schema: resetPasswordJsonSchema },
-		resetPasswordHandler
-	);
-}
+router.post(
+	'/forgot-password',
+	validateResource(forgotPasswordSchema),
+	forgotPasswordHandler
+);
+
+router.post(
+	'/reset-password/:id/:passwordResetToken',
+	validateResource(resetPasswordSchema),
+	resetPasswordHandler
+);
+
+router.get('/me', getCurrentUserHandler);
+
+export default router;

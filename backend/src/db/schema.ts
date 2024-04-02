@@ -8,6 +8,8 @@ import {
 	timestamp,
 	text,
 } from 'drizzle-orm/pg-core';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { isValid } from 'zod';
 
 export const rolesEnum = pgEnum('roles', ['admin', 'member']);
 
@@ -21,10 +23,11 @@ export const user = pgTable(
 		password: varchar('password', { length: 256 }).notNull(),
 		dob: date('date_of_birth'),
 		isVerified: boolean('is_verified').notNull().default(false),
-		verificationToken: varchar('verification_token', { length: 256 })
-			.notNull()
-			.default(nanoid()),
+		verificationToken: varchar('verification_token', { length: 256 }).default(
+			nanoid()
+		),
 		passwordResetToken: varchar('password_reset_token', { length: 256 }),
+		passwordResetExpiresAt: timestamp('password_reset_expires_at'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),
 	},
@@ -35,6 +38,9 @@ export const user = pgTable(
 	}
 );
 
+export type User = InferSelectModel<typeof user>;
+export type NewUser = InferInsertModel<typeof user>;
+
 export const group = pgTable('groups', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: varchar('name', { length: 256 }).notNull(),
@@ -42,6 +48,9 @@ export const group = pgTable('groups', {
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
+
+export type Group = InferSelectModel<typeof group>;
+export type NewGroup = InferInsertModel<typeof group>;
 
 export const groupUsers = pgTable(
 	'group_users',
@@ -63,3 +72,19 @@ export const groupUsers = pgTable(
 		};
 	}
 );
+
+export type GroupUser = InferSelectModel<typeof groupUsers>;
+export type NewGroupUser = InferInsertModel<typeof groupUsers>;
+
+export const session = pgTable('sessions', {
+	id: uuid('id').primaryKey().defaultRandom(),
+	userId: uuid('user_id')
+		.references(() => user.id, { onDelete: 'cascade' })
+		.notNull(),
+	isValid: boolean('is_valid').notNull().default(true),
+	expiresAt: timestamp('expires_at').notNull(),
+	createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Session = InferSelectModel<typeof session>;
+export type NewSession = InferInsertModel<typeof session>;
