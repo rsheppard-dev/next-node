@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { CreateSessionBody } from '../schemas/auth.schemas';
-import { getUserByEmail } from '../services/user.services';
+import { getUserByEmail, getUserById } from '../services/user.services';
 import {
+	getSessionById,
 	signAccessToken,
 	signRefreshToken,
 	validatePassword,
 } from '../services/auth.services';
-import { logger } from '../utils/logger';
+import { verifyJwt } from '../utils/jwt';
 
 export async function createSessionHandler(
 	req: Request<{}, {}, CreateSessionBody>,
@@ -35,6 +36,38 @@ export async function createSessionHandler(
 		return res.status(500).send({
 			statusCode: 500,
 			message: 'Failed to create session',
+			error,
+		});
+	}
+}
+
+export async function refreshAccessTokenHandler(req: Request, res: Response) {
+	// get the refresh token from the request headers
+	const refreshToken = req.headers['x-refresh'] as string;
+	const message = 'Could not refresh access token';
+
+	try {
+		const decoded = verifyJwt<{ sessionId: string }>(refreshToken, 'refresh');
+
+		if (!decoded) return res.status(401).send(message);
+
+		// get the session from the database
+		const session = await getSessionById(decoded.sessionId);
+
+		if (!session || !session.isValid) return res.status(401).send(message);
+
+		// get the user from the database
+		const user = await getUserById(session.userId);
+
+		if (!user) return res.status(401).send(message);
+
+		const accessToken = signAccessToken(user);
+
+		return res.send({ accessToken });
+	} catch (error) {
+		return res.status(500).send({
+			statusCode: 500,
+			message,
 			error,
 		});
 	}

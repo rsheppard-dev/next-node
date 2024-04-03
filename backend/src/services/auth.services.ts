@@ -1,8 +1,10 @@
+import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { session, User } from '../db/schema';
 import { signJwt } from '../utils/jwt';
 import { logger } from '../utils/logger';
 import argon2 from 'argon2';
+import { removePrivateUserProps } from './user.services';
 
 export async function createSession(userId: string) {
 	const newSession = await db
@@ -14,6 +16,14 @@ export async function createSession(userId: string) {
 		.returning();
 
 	return newSession[0];
+}
+
+export async function getSessionById(sessionId: string) {
+	const result = await db.query.session.findFirst({
+		where: eq(session.id, sessionId),
+	});
+
+	return result;
 }
 
 export async function validatePassword(
@@ -29,7 +39,9 @@ export async function validatePassword(
 }
 
 export function signAccessToken(user: User) {
-	const accessToken = signJwt(user, 'access', {
+	const publicProperties = removePrivateUserProps(user);
+
+	const accessToken = signJwt(publicProperties, 'access', {
 		expiresIn: '15m',
 	});
 	return accessToken;

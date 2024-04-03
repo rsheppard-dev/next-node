@@ -10,6 +10,7 @@ import {
 	createUser,
 	getUserByEmail,
 	getUserById,
+	removePrivateUserProps,
 	updateUser,
 } from '../services/user.services';
 import { logger } from '../utils/logger';
@@ -32,7 +33,7 @@ export async function createUserHandler(
 			text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
 		});
 
-		return res.send(user);
+		return res.send(removePrivateUserProps(user));
 	} catch (error: any) {
 		if (error.code === '23505') {
 			return res.status(409).send({
@@ -81,7 +82,7 @@ export async function verifyUserHandler(
 	user.verificationToken = null;
 	const updatedUser = await updateUser(user);
 
-	return res.send(updatedUser);
+	return res.send(removePrivateUserProps(updatedUser));
 }
 
 export async function forgotPasswordHandler(
@@ -153,7 +154,7 @@ export async function resetPasswordHandler(
 
 	const updatedUser = await updateUser(user);
 
-	return res.send(updatedUser);
+	return res.send(removePrivateUserProps(updatedUser));
 }
 
 export async function getCurrentUserHandler(req: Request, res: Response) {

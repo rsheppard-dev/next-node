@@ -9,7 +9,6 @@ import {
 	text,
 } from 'drizzle-orm/pg-core';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import { isValid } from 'zod';
 
 export const rolesEnum = pgEnum('roles', ['admin', 'member']);
 

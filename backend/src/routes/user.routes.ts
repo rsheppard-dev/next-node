@@ -13,6 +13,7 @@ import {
 	resetPasswordSchema,
 	verifyUserSchema,
 } from '../schemas/user.schemas';
+import requireUser from '../middleware/requireUser';
 
 const router = Router();
 
@@ -36,6 +37,6 @@ router.post(
 	resetPasswordHandler
 );
 
-router.get('/me', getCurrentUserHandler);
+router.get('/me', requireUser, getCurrentUserHandler);
 
 export default router;

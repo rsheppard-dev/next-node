@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db';
 import { NewUser, User, user } from '../db/schema';
 import argon2 from 'argon2';
+import { logger } from '../utils/logger';
 
 export async function createUser(data: NewUser) {
 	data.password = await hashPassword(data.password);
@@ -29,20 +30,7 @@ export async function updateUser(data: User) {
 }
 
 export async function getUsers() {
-	const result = await db.query.user.findMany({
-		columns: {
-			id: true,
-			givenName: true,
-			familyName: true,
-			email: true,
-			dob: true,
-			isVerified: true,
-			createdAt: true,
-		},
-		with: {
-			groups: true,
-		},
-	});
+	const result = await db.query.user.findMany();
 
 	return result;
 }
@@ -56,13 +44,29 @@ export async function getUserById(id: string) {
 }
 
 export async function getUserByEmail(email: string) {
-	const result = await db.query.user.findFirst({
-		where: eq(user.email, email),
-	});
+	try {
+		const result = await db.query.user.findFirst({
+			where: eq(user.email, email),
+		});
 
-	return result;
+		return result;
+	} catch (error) {
+		logger.error(error, 'Error getting user by email');
+	}
 }
 
 export async function hashPassword(password: string) {
 	return await argon2.hash(password);
+}
+
+export function removePrivateUserProps(user: User) {
+	const {
+		password,
+		verificationToken,
+		passwordResetToken,
+		passwordResetExpiresAt,
+		...publicProps
+	} = user;
+
+	return publicProps;
 }
