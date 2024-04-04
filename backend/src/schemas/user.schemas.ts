@@ -27,6 +27,12 @@ export const createUserSchema = z.object({
 		}),
 });
 
+export const getUserSchema = z.object({
+	params: z.object({
+		id: z.string({ required_error: 'User ID is required' }),
+	}),
+});
+
 export const verifyUserSchema = z.object({
 	params: z.object({
 		id: z.string({ required_error: 'User ID is required' }),
@@ -67,6 +73,7 @@ export const resetPasswordSchema = z.object({
 });
 
 export type CreateUserBody = z.infer<typeof createUserSchema>['body'];
+export type GetUserParams = z.infer<typeof getUserSchema>['params'];
 export type VerifyUserParams = z.infer<typeof verifyUserSchema>['params'];
 export type ForgotPasswordBody = z.infer<typeof forgotPasswordSchema>['body'];
 export type ResetPasswordBody = z.infer<typeof resetPasswordSchema>['body'];

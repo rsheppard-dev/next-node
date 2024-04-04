@@ -3,6 +3,7 @@ import {
 	createUserHandler,
 	forgotPasswordHandler,
 	getCurrentUserHandler,
+	getUserHandler,
 	resetPasswordHandler,
 	verifyUserHandler,
 } from '../controllers/user.controllers';
@@ -10,6 +11,7 @@ import validateResource from '../middleware/validateResource';
 import {
 	createUserSchema,
 	forgotPasswordSchema,
+	getUserSchema,
 	resetPasswordSchema,
 	verifyUserSchema,
 } from '../schemas/user.schemas';
@@ -18,6 +20,10 @@ import requireUser from '../middleware/requireUser';
 const router = Router();
 
 router.post('/', validateResource(createUserSchema), createUserHandler);
+
+router.get('/me', requireUser, getCurrentUserHandler);
+
+router.get('/:id', validateResource(getUserSchema), getUserHandler);
 
 router.get(
 	'/verify/:id/:verificationToken',
@@ -36,7 +42,5 @@ router.post(
 	validateResource(resetPasswordSchema),
 	resetPasswordHandler
 );
-
-router.get('/me', requireUser, getCurrentUserHandler);
 
 export default router;

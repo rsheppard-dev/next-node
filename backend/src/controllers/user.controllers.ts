@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 import {
 	CreateUserBody,
 	ForgotPasswordBody,
+	GetUserParams,
 	ResetPasswordBody,
 	ResetPasswordParams,
 	VerifyUserParams,
@@ -33,7 +34,7 @@ export async function createUserHandler(
 			text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
 		});
 
-		return res.send(removePrivateUserProps(user));
+		return res.status(201).send(removePrivateUserProps(user));
 	} catch (error: any) {
 		if (error.code === '23505') {
 			return res.status(409).send({
@@ -45,6 +46,32 @@ export async function createUserHandler(
 		}
 
 		res.send(error);
+	}
+}
+
+export async function getUserHandler(
+	req: Request<GetUserParams>,
+	res: Response
+) {
+	const { id } = req.params;
+
+	try {
+		const user = await getUserById(id);
+
+		if (!user) {
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found',
+			});
+		}
+
+		return res.send(removePrivateUserProps(user));
+	} catch (error: any) {
+		return res.status(400).send({
+			statusCode: 400,
+			message: error.message,
+			error,
+		});
 	}
 }
 

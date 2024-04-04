@@ -1,14 +1,21 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
 
+export type JwtPayload<T> = {
+	isValid: boolean;
+	isExpired: boolean;
+	data: T | null;
+	error?: string;
+};
+
 function decodeBase64(base64String: string): string {
 	return Buffer.from(base64String, 'base64').toString('ascii');
 }
 
 export function signJwt(
 	payload: Object,
-	tokenType: 'access' | 'refresh',
-	options?: jwt.SignOptions | undefined
+	tokenType: 'access' | 'refresh' = 'access',
+	options?: jwt.SignOptions
 ): string {
 	const base64String =
 		tokenType === 'access'
@@ -25,8 +32,8 @@ export function signJwt(
 
 export function verifyJwt<T>(
 	token: string,
-	tokenType: 'access' | 'refresh'
-): T | null {
+	tokenType: 'access' | 'refresh' = 'access'
+): JwtPayload<T> {
 	const base64String =
 		tokenType === 'access'
 			? env.ACCESS_TOKEN_PUBLIC_KEY
@@ -36,8 +43,17 @@ export function verifyJwt<T>(
 
 	try {
 		const decoded = jwt.verify(token, key, { algorithms: ['RS256'] }) as T;
-		return decoded;
-	} catch (error) {
-		return null;
+		return {
+			isValid: true,
+			isExpired: false,
+			data: decoded,
+		};
+	} catch (error: any) {
+		return {
+			isValid: false,
+			isExpired: error.message === 'jwt expired',
+			data: null,
+			error: error.message,
+		};
 	}
 }

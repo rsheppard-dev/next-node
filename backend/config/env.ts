@@ -3,7 +3,11 @@ import { z } from 'zod';
 
 const schema = z.object({
 	NODE_ENV: z
-		.union([z.literal('development'), z.literal('production')])
+		.union([
+			z.literal('development'),
+			z.literal('production'),
+			z.literal('test'),
+		])
 		.default('development'),
 
 	PORT: z.number().default(3000),

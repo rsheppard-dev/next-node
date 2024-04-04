@@ -81,8 +81,9 @@ export const session = pgTable('sessions', {
 		.references(() => user.id, { onDelete: 'cascade' })
 		.notNull(),
 	isValid: boolean('is_valid').notNull().default(true),
-	expiresAt: timestamp('expires_at').notNull(),
+	userAgent: varchar('user_agent', { length: 256 }),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
+	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 export type Session = InferSelectModel<typeof session>;

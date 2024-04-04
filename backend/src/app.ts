@@ -1,14 +1,8 @@
 import { env } from '../config/env';
-import express from 'express';
 import { logger } from './utils/logger';
-import router from './routes';
-import deserialiseUser from './middleware/deserialiseUser';
+import createServer from './utils/server';
 
-const app = express();
-
-app.use(express.json());
-app.use(deserialiseUser);
-app.use(router);
+const app = createServer();
 
 const port = env.PORT;
 
