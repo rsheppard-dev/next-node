@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { CreateSessionBody } from '../schemas/session.schemas';
 import {
 	getUserByEmail,
-	getUserById,
 	removePrivateUserProps,
 } from '../services/user.services';
 import {
@@ -12,7 +11,7 @@ import {
 	updateSession,
 	validatePassword,
 } from '../services/session.services';
-import { JwtPayload, signJwt, verifyJwt } from '../utils/jwt';
+import { signJwt } from '../utils/jwt';
 import { env } from '../../config/env';
 import { User } from '../db/schema';
 
@@ -21,18 +20,30 @@ export async function createSessionHandler(
 	res: Response
 ) {
 	const { email, password } = req.body;
-	const message = 'Invalid email or password';
+	const message = 'Incorrect email or password';
 
 	try {
 		const user = await getUserByEmail(email);
 
-		if (!user) return res.status(401).send(message);
+		if (!user)
+			return res.status(401).send({
+				statusCode: 401,
+				message,
+			});
 
-		if (!user.isVerified) return res.status(403).send('Email is not verified');
+		if (!user.isVerified)
+			return res.status(403).send({
+				statusCode: 403,
+				message: 'Email has not been verified',
+			});
 
 		const isPasswordValid = await validatePassword(password, user.password);
 
-		if (!isPasswordValid) return res.status(401).send(message);
+		if (!isPasswordValid)
+			return res.status(401).send({
+				statusCode: 401,
+				message,
+			});
 
 		const session = await createSession(user.id, req.get('user-agent'));
 
@@ -58,7 +69,7 @@ export async function createSessionHandler(
 		);
 
 		res.cookie('accessToken', accessToken, {
-			maxAge: 15 * 60 * 1000, // 15 minutes
+			maxAge: 1000 * 60 * 15, // 15 minutes
 			httpOnly: true,
 			domain: 'localhost',
 			secure: env.NODE_ENV === 'production',

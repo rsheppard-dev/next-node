@@ -1,8 +1,9 @@
-import e, { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { verifyJwt } from '../utils/jwt';
 import { User } from '../db/schema';
 import { refreshAccessToken } from '../services/session.services';
 import { env } from '../../config/env';
+import { logger } from '../utils/logger';
 
 export default async function deserialiseUser(
 	req: Request,
@@ -29,13 +30,14 @@ export default async function deserialiseUser(
 	}
 
 	if (isExpired && refreshToken) {
+		logger.info('Access token expired, trying to refresh...');
 		const newAccessToken = await refreshAccessToken(refreshToken);
 
 		if (newAccessToken) {
 			res.setHeader('Authorization', `Bearer ${newAccessToken}`);
 
 			res.cookie('accessToken', accessToken, {
-				maxAge: 15 * 60 * 1000, // 15 minutes
+				maxAge: 1000 * 60 * 15, // 15 minutes
 				httpOnly: true,
 				domain: 'localhost',
 				secure: env.NODE_ENV === 'production',
@@ -45,6 +47,8 @@ export default async function deserialiseUser(
 				newAccessToken,
 				'access'
 			);
+
+			logger.info('Access token refreshed');
 
 			res.locals.user = newData;
 		}

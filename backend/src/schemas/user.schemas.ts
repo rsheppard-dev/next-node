@@ -5,12 +5,10 @@ export const createUserSchema = z.object({
 		.object({
 			givenName: z
 				.string({ required_error: 'First name is required' })
-				.min(1)
-				.max(255),
+				.max(50, { message: 'First name must not exceed 50 characters' }),
 			familyName: z
 				.string({ required_error: 'Last name is required' })
-				.min(1)
-				.max(255),
+				.max(50, { message: 'Last name must not exceed 50 characters' }),
 			email: z
 				.string({ required_error: 'Email is required' })
 				.email('Not a valid email'),

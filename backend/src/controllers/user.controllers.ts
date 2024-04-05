@@ -17,6 +17,7 @@ import {
 import { logger } from '../utils/logger';
 import sendEmail from '../utils/mailer';
 import { Request, Response } from 'express';
+import { env } from '../../config/env';
 
 export async function createUserHandler(
 	req: Request<{}, {}, CreateUserBody>,
@@ -27,12 +28,14 @@ export async function createUserHandler(
 	try {
 		const user = await createUser(data);
 
-		await sendEmail({
-			from: 'Secret Gifter <nores@secretgifter.io>',
-			to: user.email,
-			subject: 'Please verify your account',
-			text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
-		});
+		if (env.NODE_ENV !== 'test') {
+			await sendEmail({
+				from: 'Secret Gifter <nores@secretgifter.io>',
+				to: user.email,
+				subject: 'Please verify your account',
+				text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
+			});
+		}
 
 		return res.status(201).send(removePrivateUserProps(user));
 	} catch (error: any) {

@@ -1,41 +1,69 @@
 import supertest from 'supertest';
 import createServer from '../utils/server';
-import { v4 as uuidv4 } from 'uuid';
-import { createUser } from '../services/user.services';
+import * as UserService from '../services/user.services';
+import {
+	newUserPayload,
+	userConflictErrorPayload,
+	userBody,
+} from './mocks/user.mocks';
+import { nanoid } from 'nanoid';
 
 const app = createServer();
 
-const userId = uuidv4();
-
-export const userPayload = {
-	id: userId,
-	givenName: 'Roy',
-	familyName: 'Sheppard',
-	email: 'rheppard83@gmail.com',
-	password: '12345678',
-	isVerified: true,
-};
+jest.mock('nanoid', () => ({
+	nanoid: jest.fn(() => '4rcHM8Ch_g'),
+}));
 
 describe('user', () => {
-	describe('get user route', () => {
-		describe('given the user does not exist', () => {
-			it('should return a 404', async () => {
-				const userId = 'bcdadf12-2ac7-4488-b0ec-ee6adfed5b65';
+	// user registration
+	describe('user registration', () => {
+		describe('given the user provides a valid email and password', () => {
+			it('should return the user payload', async () => {
+				const createUserServiceMock = jest
+					.spyOn(UserService, 'createUser')
+					// @ts-ignore
+					.mockReturnValueOnce(newUserPayload);
 
-				await supertest(app).get(`/api/users/${userId}`).expect(404);
+				const { status, body } = await supertest(app)
+					.post('/api/users')
+					.send(userBody);
+
+				expect(status).toBe(201);
+				expect(body).toEqual(newUserPayload);
+				expect(createUserServiceMock).toHaveBeenCalledWith(userBody);
 			});
 		});
 
-		describe('given the user exists', () => {
-			it('should return the user', async () => {
-				const user = await createUser(userPayload);
+		describe('given the passwords do not match', () => {
+			it('should return a 400 error', async () => {
+				const createUserServiceMock = jest
+					.spyOn(UserService, 'createUser')
+					// @ts-ignore
+					.mockReturnValueOnce(newUserPayload);
 
-				const { body, statusCode } = await supertest(app).get(
-					`/api/users/${user.id}`
-				);
+				const { status, body } = await supertest(app)
+					.post('/api/users')
+					.send({ ...userBody, confirmPassword: 'password1234' });
 
-				expect(statusCode).toBe(200);
-				expect(body.id).toEqual(user.id);
+				expect(status).toBe(400);
+				expect(createUserServiceMock).not.toHaveBeenCalled();
+			});
+		});
+
+		describe('given the user email already exists', () => {
+			it('should return a 409 error', async () => {
+				const createUserServiceMock = jest
+					.spyOn(UserService, 'createUser')
+					// @ts-ignore
+					.mockRejectedValue(userConflictErrorPayload);
+
+				const { status, body } = await supertest(app)
+					.post('/api/users')
+					.send(userBody);
+
+				expect(status).toBe(409);
+				expect(body).toEqual(userConflictErrorPayload);
+				expect(createUserServiceMock).toHaveBeenCalledWith(userBody);
 			});
 		});
 	});

@@ -10,13 +10,9 @@ import requireUser from '../middleware/requireUser';
 
 const router = Router();
 
-router.post(
-	'/login',
-	validateResource(createSessionSchema),
-	createSessionHandler
-);
+router.post('/', validateResource(createSessionSchema), createSessionHandler);
 router.get('/', getUserSessionsHandler);
 
-router.delete('/logout', requireUser, deleteSessionHandler);
+router.delete('/', requireUser, deleteSessionHandler);
 
 export default router;

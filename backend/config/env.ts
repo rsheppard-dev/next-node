@@ -9,8 +9,8 @@ const schema = z.object({
 			z.literal('test'),
 		])
 		.default('development'),
-
-	PORT: z.number().default(3000),
+	ORIGIN: z.string().default('http://localhost:3000'),
+	PORT: z.number().default(4000),
 	PGHOST: z.string(),
 	PGDATABASE: z.string(),
 	PGUSER: z.string(),
