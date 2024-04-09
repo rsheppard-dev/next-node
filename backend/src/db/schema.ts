@@ -21,6 +21,7 @@ export const user = pgTable(
 		email: varchar('email', { length: 256 }).unique().notNull(),
 		password: varchar('password', { length: 256 }).notNull(),
 		dob: date('date_of_birth'),
+		picture: varchar('picture', { length: 256 }),
 		isVerified: boolean('is_verified').notNull().default(false),
 		verificationToken: varchar('verification_token', { length: 256 }).default(
 			nanoid()
@@ -39,6 +40,13 @@ export const user = pgTable(
 
 export type User = InferSelectModel<typeof user>;
 export type NewUser = InferInsertModel<typeof user>;
+export type PublicUser = Omit<
+	User,
+	| 'password'
+	| 'verificationToken'
+	| 'passwordResetToken'
+	| 'passwordResetExpiresAt'
+> & { sessionId: string };
 
 export const group = pgTable('groups', {
 	id: uuid('id').primaryKey().defaultRandom(),

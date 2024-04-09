@@ -5,33 +5,55 @@ import { logger } from '../utils/logger';
 import argon2 from 'argon2';
 import { signJwt, verifyJwt } from '../utils/jwt';
 import { getUserById, removePrivateUserProps } from './user.services';
+import { env } from '../../config/env';
+
+export const refreshCookieOptions = {
+	maxAge: 3.154e10, // 1 year
+	httpOnly: true,
+	domain: env.NODE_ENV === 'production' ? 'secregifter.io' : 'localhost',
+	secure: env.NODE_ENV === 'production',
+};
 
 export async function createSession(userId: string, userAgent?: string) {
-	const newSession = await db
-		.insert(session)
-		.values({
-			userId,
-			userAgent,
-		})
-		.returning();
+	try {
+		const newSession = await db
+			.insert(session)
+			.values({
+				userId,
+				userAgent,
+			})
+			.returning();
 
-	return newSession[0];
+		return newSession[0];
+	} catch (error) {
+		logger.error(error, 'Error creating session');
+		throw error;
+	}
 }
 
 export async function getUserSessions(userId: string) {
-	const sessions = await db.query.session.findMany({
-		where: eq(session.userId, userId) && eq(session.isValid, true),
-	});
+	try {
+		const sessions = await db.query.session.findMany({
+			where: eq(session.userId, userId) && eq(session.isValid, true),
+		});
 
-	return sessions;
+		return sessions;
+	} catch (error) {
+		throw error;
+	}
 }
 
 export async function getSessionById(sessionId: string) {
-	const result = await db.query.session.findFirst({
-		where: eq(session.id, sessionId),
-	});
+	try {
+		const result = await db.query.session.findFirst({
+			where: eq(session.id, sessionId),
+		});
 
-	return result;
+		return result;
+	} catch (error) {
+		logger.error(error, 'Error getting session by id');
+		throw error;
+	}
 }
 
 export async function updateSession(data: Session) {
@@ -47,7 +69,8 @@ export async function updateSession(data: Session) {
 
 		return result[0];
 	} catch (error) {
-		return error as Error;
+		logger.error(error, 'Error updating session');
+		throw error;
 	}
 }
 
@@ -60,7 +83,8 @@ export async function deleteSession(sessionId: string) {
 
 		return result[0];
 	} catch (error) {
-		return error as Error;
+		logger.error(error, 'Error deleting session');
+		throw error;
 	}
 }
 
@@ -99,11 +123,12 @@ export async function refreshAccessToken(refreshToken: string) {
 				sessionId: session.id,
 			},
 			'access',
-			{ expiresIn: '15m' }
+			{ expiresIn: env.ACCESS_TOKEN_TTL }
 		);
 
 		return accessToken;
 	} catch (error) {
 		logger.error(error, 'Error refreshing access token');
+		throw error;
 	}
 }

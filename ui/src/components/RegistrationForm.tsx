@@ -21,7 +21,7 @@ import {
 import { isAxiosError } from 'axios';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import instance from '@/utils/axios-instance';
+import instance from '@/utils/axios';
 
 export default function RegistrationForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);

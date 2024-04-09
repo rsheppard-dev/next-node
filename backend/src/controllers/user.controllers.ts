@@ -18,6 +18,7 @@ import { logger } from '../utils/logger';
 import sendEmail from '../utils/mailer';
 import { Request, Response } from 'express';
 import { env } from '../../config/env';
+import { PublicUser } from '../db/schema';
 
 export async function createUserHandler(
 	req: Request<{}, {}, CreateUserBody>,
@@ -30,7 +31,7 @@ export async function createUserHandler(
 
 		if (env.NODE_ENV !== 'test') {
 			await sendEmail({
-				from: 'Secret Gifter <nores@secretgifter.io>',
+				from: 'Secret Gifter <noreply@secretgifter.io>',
 				to: user.email,
 				subject: 'Please verify your account',
 				text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
@@ -187,6 +188,9 @@ export async function resetPasswordHandler(
 	return res.send(removePrivateUserProps(updatedUser));
 }
 
-export async function getCurrentUserHandler(req: Request, res: Response) {
+export async function getCurrentUserHandler(
+	req: Request,
+	res: Response<{}, { user: PublicUser }>
+) {
 	return res.send(res.locals.user);
 }

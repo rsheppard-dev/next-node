@@ -18,12 +18,13 @@ import { isAxiosError } from 'axios';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
-import instance from '@/utils/axios-instance';
+import { useSessionSelectors } from '@/stores/session.store';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const router = useRouter();
+	const login = useSessionSelectors.use.login();
 
 	const form = useForm<LoginInput>({
 		resolver: zodResolver(loginInputSchema),
@@ -37,7 +38,7 @@ export default function LoginForm() {
 		setIsSubmitting(true);
 		setErrorMessage(null);
 		try {
-			await instance.post('/api/sessions', values);
+			await login(values);
 			router.push('/');
 		} catch (error) {
 			if (isAxiosError(error)) {
