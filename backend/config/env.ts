@@ -12,7 +12,7 @@ const schema = z.object({
 
 	ORIGIN: z.string().default('http://localhost:3000'),
 
-	ACCESS_TOKEN_TTL: z.string().default('5s'),
+	ACCESS_TOKEN_TTL: z.string().default('15m'),
 	REFRESH_TOKEN_TTL: z.string().default('1y'),
 
 	PORT: z.number().default(4000),

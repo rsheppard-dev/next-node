@@ -12,16 +12,24 @@ import {
 import { useSessionSelectors } from '@/stores/session.store';
 import { Gift } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function NavBar() {
+	const router = useRouter();
 	const isAuthenticated = useSessionSelectors.use.isAuthenticated();
 	const logout = useSessionSelectors.use.logout();
+
+	async function handleLogout() {
+		await logout();
+		router.push('/');
+	}
+
 	return (
 		<header className='flex justify-between items-center mb-16'>
-			<div className='flex gap-2 items-center'>
+			<Link href='/' className='flex gap-2 items-center'>
 				<Gift className='stroke-primary' />
 				<span className='font-bold'>Secret Gifter</span>
-			</div>
+			</Link>
 
 			<NavigationMenu>
 				<NavigationMenuList className='space-x-6 text-sm'>
@@ -32,10 +40,19 @@ export default function NavBar() {
 							</NavigationMenuLink>
 						</Link>
 					</NavigationMenuItem>
+					{isAuthenticated ? (
+						<NavigationMenuItem>
+							<Link href='/profile' legacyBehavior passHref>
+								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
+									Profile
+								</NavigationMenuLink>
+							</Link>
+						</NavigationMenuItem>
+					) : null}
 					<NavigationMenuItem>
 						{isAuthenticated ? (
 							<NavigationMenuLink
-								onClick={logout}
+								onClick={handleLogout}
 								className={cn(navigationMenuTriggerStyle(), 'cursor-pointer')}
 							>
 								Logout

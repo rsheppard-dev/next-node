@@ -19,4 +19,9 @@ export const registrationInputSchema = z
 		path: ['confirmPassword'],
 	});
 
+export const forgotPasswordInputSchema = z.object({
+	email: z.string().email({ message: 'Invalid email address' }),
+});
+
 export type RegistrationInput = z.infer<typeof registrationInputSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordInputSchema>;

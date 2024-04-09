@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import {
+	ForgotPasswordInput,
+	forgotPasswordInputSchema,
+} from '@/schemas/user.schemas';
+import { forgotPassword } from '@/services/user.services';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { isAxiosError } from 'axios';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button } from './ui/button';
 import {
 	Form,
 	FormControl,
@@ -13,33 +17,30 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from '@/components/ui/form';
-import { isAxiosError } from 'axios';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
-import { useSessionSelectors } from '@/stores/session.store';
+} from './ui/form';
+import { Input } from './ui/input';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { AlertCircle, Terminal } from 'lucide-react';
 
-export default function LoginForm() {
+export default function ForgotPasswordForm() {
+	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const router = useRouter();
-	const login = useSessionSelectors.use.login();
 
-	const form = useForm<LoginInput>({
-		resolver: zodResolver(loginInputSchema),
+	const form = useForm<ForgotPasswordInput>({
+		resolver: zodResolver(forgotPasswordInputSchema),
 		defaultValues: {
 			email: '',
-			password: '',
 		},
 	});
 
-	async function onSubmit(values: LoginInput) {
+	async function onSubmit(values: ForgotPasswordInput) {
 		setIsSubmitting(true);
+		setSuccessMessage(null);
 		setErrorMessage(null);
 		try {
-			await login(values);
-			router.push('/profile');
+			const response = await forgotPassword(values.email);
+			setSuccessMessage(response.data.message);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);
@@ -49,6 +50,7 @@ export default function LoginForm() {
 		}
 		setIsSubmitting(false);
 	}
+
 	return (
 		<Form {...form}>
 			{errorMessage ? (
@@ -58,6 +60,15 @@ export default function LoginForm() {
 					<AlertDescription>{errorMessage}</AlertDescription>
 				</Alert>
 			) : null}
+
+			{successMessage ? (
+				<Alert variant='default' className='mb-10'>
+					<Terminal className='h-4 w-4' />
+					<AlertTitle>Thank you</AlertTitle>
+					<AlertDescription>{successMessage}</AlertDescription>
+				</Alert>
+			) : null}
+
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
 				className='max-w-md space-y-4'
@@ -75,21 +86,8 @@ export default function LoginForm() {
 						</FormItem>
 					)}
 				/>
-				<FormField
-					control={form.control}
-					name='password'
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Password</FormLabel>
-							<FormControl>
-								<Input type='password' {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
 				<Button type='submit' disabled={isSubmitting}>
-					Login
+					Submit
 				</Button>
 			</form>
 		</Form>

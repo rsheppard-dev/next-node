@@ -120,44 +120,51 @@ export async function forgotPasswordHandler(
 	req: Request<{}, {}, ForgotPasswordBody>,
 	res: Response
 ) {
-	const { email } = req.body;
+	try {
+		const { email } = req.body;
 
-	const message =
-		'If a user is registered with that email you will receive instructions to reset your password.';
+		const message =
+			'If a user is registered with that email you will receive instructions to reset your password.';
 
-	const user = await getUserByEmail(email);
+		const user = await getUserByEmail(email);
 
-	if (!user) {
-		logger.debug(`User with email ${email} not found`);
+		if (!user) {
+			logger.debug(`User with email ${email} not found`);
+			return res.send({ message });
+		}
+
+		if (!user.isVerified) {
+			logger.debug(`User with email ${email} not verified`);
+			return res.status(403).send({
+				status: 403,
+				message: 'User is not verified',
+			});
+		}
+
+		const passwordResetToken = nanoid();
+		const passwordResetExpires = new Date(Date.now() + 1000 * 60 * 60 * 18); // 18 hours
+
+		user.passwordResetToken = passwordResetToken;
+		user.passwordResetExpiresAt = passwordResetExpires;
+
+		await updateUser(user);
+
+		await sendEmail({
+			from: 'Secret Gifter <nores@secretgifter.io>',
+			to: user.email,
+			subject: 'Password Reset',
+			text: `Click the link to reset your password: Token: ${passwordResetToken} ID: ${user.id}`,
+		});
+
+		logger.debug(`Password reset token sent to ${email}`);
+
 		return res.send({ message });
-	}
-
-	if (!user.isVerified) {
-		logger.debug(`User with email ${email} not verified`);
-		return res.status(403).send({
-			status: 403,
-			message: 'User is not verified',
+	} catch (error) {
+		return res.status(400).send({
+			statusCode: 500,
+			message: 'Failed to generate password reset token',
 		});
 	}
-
-	const passwordResetToken = nanoid();
-	const passwordResetExpires = new Date(Date.now() + 1000 * 60 * 60 * 18); // 18 hours
-
-	user.passwordResetToken = passwordResetToken;
-	user.passwordResetExpiresAt = passwordResetExpires;
-
-	await updateUser(user);
-
-	await sendEmail({
-		from: 'Secret Gifter <nores@secretgifter.io>',
-		to: user.email,
-		subject: 'Password Reset',
-		text: `Click the link to reset your password: Token: ${passwordResetToken} ID: ${user.id}`,
-	});
-
-	logger.debug(`Password reset token sent to ${email}`);
-
-	return res.send({ message });
 }
 
 export async function resetPasswordHandler(

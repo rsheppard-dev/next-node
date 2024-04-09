@@ -27,7 +27,7 @@ const initialState: SessionState = {
 
 export const useSessionStore = create<SessionStore>()(
 	persist(
-		(set, get) => ({
+		set => ({
 			...initialState,
 			login: async (values: LoginInput): Promise<void> => {
 				try {
@@ -50,6 +50,7 @@ export const useSessionStore = create<SessionStore>()(
 			logout: async () => {
 				try {
 					await axiosAuth.delete('/api/sessions');
+
 					return set(initialState);
 				} catch (error) {
 					console.log('Error logging out', error);

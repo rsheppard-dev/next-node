@@ -20,23 +20,29 @@ export default function WelcomeSection() {
 	} = useQuery<User>({
 		queryKey: ['currentUser'],
 		queryFn: () => fetcher<User>('/api/users/me'),
+		enabled: isAuthenticated,
 	});
 
-	if (isPending) return <p>Loading...</p>;
+	if (isPending && isAuthenticated) return <p>Loading...</p>;
 	if (isError) return <p>Error loading user data. {error.message}</p>;
 
-	function goToLogin() {
+	function handleLogin() {
 		router.push('/login');
 	}
 
-	if (isAuthenticated)
+	async function handleLogout() {
+		await logout();
+		router.push('/');
+	}
+
+	if (isAuthenticated && user)
 		return (
 			<section className='flex flex-col gap-8'>
 				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
 				<p className='text-xl text-muted-foreground'>You are now logged in.</p>
 				<div className='flex items-center gap-6'>
 					<Button variant={'secondary'}>View Profile</Button>
-					<Button onClick={logout}>Logout</Button>
+					<Button onClick={handleLogout}>Logout</Button>
 				</div>
 			</section>
 		);
@@ -47,7 +53,7 @@ export default function WelcomeSection() {
 			<p className='text-xl text-muted-foreground'>I am learning ShadCn!</p>
 			<div className='flex items-center gap-6'>
 				<Button variant={'secondary'}>Learn More</Button>
-				<Button onClick={goToLogin}>Login</Button>
+				<Button onClick={handleLogin}>Login</Button>
 			</div>
 		</section>
 	);
