@@ -26,7 +26,7 @@ router.get('/me', requireUser, getCurrentUserHandler);
 router.get('/:id', validateResource(getUserSchema), getUserHandler);
 
 router.get(
-	'/verify/:id/:verificationToken',
+	'/verify/:id/:verificationCode',
 	validateResource(verifyUserSchema),
 	verifyUserHandler
 );
@@ -38,7 +38,7 @@ router.post(
 );
 
 router.post(
-	'/reset-password/:id/:passwordResetToken',
+	'/reset-password/:id/:passwordResetCode',
 	validateResource(resetPasswordSchema),
 	resetPasswordHandler
 );

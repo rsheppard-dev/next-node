@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import {
 	CreateUserBody,
 	ForgotPasswordBody,
@@ -34,7 +34,7 @@ export async function createUserHandler(
 				from: 'Secret Gifter <noreply@secretgifter.io>',
 				to: user.email,
 				subject: 'Please verify your account',
-				text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationToken} ID: ${user.id}`,
+				text: `Welcome to Secret Gifter! Please click the link to verify your account: Token: ${user.verificationCode} ID: ${user.id}`,
 			});
 		}
 
@@ -83,7 +83,7 @@ export async function verifyUserHandler(
 	req: Request<VerifyUserParams>,
 	res: Response
 ) {
-	const { id, verificationToken } = req.params;
+	const { id, verificationCode } = req.params;
 
 	// find user by id
 	const user = await getUserById(id);
@@ -102,7 +102,7 @@ export async function verifyUserHandler(
 		});
 
 	// check if verification token matches
-	if (user.verificationToken !== verificationToken)
+	if (user.verificationCode !== verificationCode)
 		return res.status(400).send({
 			statusCode: 400,
 			message: 'Could not verify user',
@@ -110,7 +110,7 @@ export async function verifyUserHandler(
 
 	// update user to be verified
 	user.isVerified = true;
-	user.verificationToken = null;
+	user.verificationCode = null;
 	const updatedUser = await updateUser(user);
 
 	return res.send(removePrivateUserProps(updatedUser));
@@ -122,6 +122,8 @@ export async function forgotPasswordHandler(
 ) {
 	try {
 		const { email } = req.body;
+
+		const nanoid = customAlphabet('0123456789', 6);
 
 		const message =
 			'If a user is registered with that email you will receive instructions to reset your password.';
@@ -141,19 +143,19 @@ export async function forgotPasswordHandler(
 			});
 		}
 
-		const passwordResetToken = nanoid();
-		const passwordResetExpires = new Date(Date.now() + 1000 * 60 * 60 * 18); // 18 hours
+		const passwordResetCode = nanoid();
+		const passwordResetExpires = new Date(Date.now() + 1000 * 60 * 60 * 8); // 8 hours
 
-		user.passwordResetToken = passwordResetToken;
+		user.passwordResetCode = passwordResetCode;
 		user.passwordResetExpiresAt = passwordResetExpires;
 
 		await updateUser(user);
 
 		await sendEmail({
-			from: 'Secret Gifter <nores@secretgifter.io>',
+			from: 'Secret Gifter <noreply@secretgifter.io>',
 			to: user.email,
 			subject: 'Password Reset',
-			text: `Click the link to reset your password: Token: ${passwordResetToken} ID: ${user.id}`,
+			text: `Click the link to reset your password: Token: ${passwordResetCode} ID: ${user.id}`,
 		});
 
 		logger.debug(`Password reset token sent to ${email}`);
@@ -171,23 +173,31 @@ export async function resetPasswordHandler(
 	req: Request<ResetPasswordParams, {}, ResetPasswordBody>,
 	res: Response
 ) {
-	const { id, passwordResetToken } = req.params;
+	const { id, passwordResetCode } = req.params;
 	const { password } = req.body;
 
 	const user = await getUserById(id);
 
 	if (
 		!user ||
-		!user.passwordResetToken ||
-		user.passwordResetToken !== passwordResetToken
+		!user.passwordResetCode ||
+		user.passwordResetCode !== passwordResetCode
 	) {
-		return res.status(400).send({
-			statusCode: 400,
+		return res.status(401).send({
+			statusCode: 401,
 			message: 'Could not reset password',
 		});
 	}
 
-	user.passwordResetToken = null;
+	if (user.passwordResetExpiresAt && user.passwordResetExpiresAt < new Date()) {
+		return res.status(401).send({
+			statusCode: 401,
+			message: 'Password reset token has expired',
+		});
+	}
+
+	user.passwordResetCode = null;
+	user.passwordResetExpiresAt = null;
 	user.password = password;
 
 	const updatedUser = await updateUser(user);

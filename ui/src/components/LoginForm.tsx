@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const login = useSessionSelectors.use.login();
 
 	const form = useForm<LoginInput>({
@@ -34,12 +35,16 @@ export default function LoginForm() {
 		},
 	});
 
+	console.log(searchParams.get('from'));
+
 	async function onSubmit(values: LoginInput) {
 		setIsSubmitting(true);
 		setErrorMessage(null);
 		try {
 			await login(values);
-			router.push('/profile');
+
+			const destination = searchParams.get('from') || '/';
+			router.push(destination);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);

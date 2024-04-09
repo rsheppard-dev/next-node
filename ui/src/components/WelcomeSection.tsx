@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { useSessionSelectors } from '@/stores/session.store';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function WelcomeSection() {
 	const router = useRouter();
@@ -41,7 +42,9 @@ export default function WelcomeSection() {
 				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
 				<p className='text-xl text-muted-foreground'>You are now logged in.</p>
 				<div className='flex items-center gap-6'>
-					<Button variant={'secondary'}>View Profile</Button>
+					<Link href='/user'>
+						<Button variant={'secondary'}>View Profile</Button>
+					</Link>
 					<Button onClick={handleLogout}>Logout</Button>
 				</div>
 			</section>

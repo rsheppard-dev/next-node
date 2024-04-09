@@ -11,7 +11,7 @@ export default function registerPage() {
 			<div>
 				<p className='text-sm'>
 					Already have an account?{' '}
-					<Link href='/login' className='text-primary'>
+					<Link href='/user/verification' className='text-primary'>
 						Login
 					</Link>
 				</p>

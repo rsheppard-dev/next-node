@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const publicPaths = ['/login', '/register', '/forgot-password'];
-const privatePaths = ['/profile'];
+const publicPaths = [
+	'/login',
+	'/register',
+	'/forgot-password',
+	'/user/verification',
+];
+const privatePaths = ['/user'];
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
@@ -13,12 +18,14 @@ export function middleware(request: NextRequest) {
 
 	// user is already authenticated but trying to access a public path
 	if (isPublicPath && refreshToken) {
-		return NextResponse.redirect(new URL('/profile', request.nextUrl));
+		return NextResponse.redirect(new URL('/user', request.nextUrl));
 	}
 
 	// user is not authenticated and trying to access a private path
 	if (isPrivatePath && !refreshToken) {
-		return NextResponse.redirect(new URL('/login', request.nextUrl));
+		return NextResponse.redirect(
+			new URL(`/login?from=${path}`, request.nextUrl)
+		);
 	}
 }
 

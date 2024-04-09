@@ -62,8 +62,8 @@ export async function hashPassword(password: string) {
 export function removePrivateUserProps(user: User) {
 	const {
 		password,
-		verificationToken,
-		passwordResetToken,
+		verificationCode,
+		passwordResetCode,
 		passwordResetExpiresAt,
 		...publicProps
 	} = user;

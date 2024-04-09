@@ -45,6 +45,7 @@ export const useSessionStore = create<SessionStore>()(
 					return set({ isAuthenticated: true, accessToken, user });
 				} catch (error) {
 					console.log('Error logging in', error);
+					throw error;
 				}
 			},
 			logout: async () => {
@@ -54,6 +55,7 @@ export const useSessionStore = create<SessionStore>()(
 					return set(initialState);
 				} catch (error) {
 					console.log('Error logging out', error);
+					throw error;
 				}
 			},
 		}),

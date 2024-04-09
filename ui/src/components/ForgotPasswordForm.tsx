@@ -64,7 +64,7 @@ export default function ForgotPasswordForm() {
 			{successMessage ? (
 				<Alert variant='default' className='mb-10'>
 					<Terminal className='h-4 w-4' />
-					<AlertTitle>Thank you</AlertTitle>
+					<AlertTitle>Check your inbox</AlertTitle>
 					<AlertDescription>{successMessage}</AlertDescription>
 				</Alert>
 			) : null}

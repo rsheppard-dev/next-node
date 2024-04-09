@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "verification_token" SET DEFAULT 'ZW0s8WSlckrl8euyKLZ-P';

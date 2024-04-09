@@ -34,7 +34,7 @@ export const getUserSchema = z.object({
 export const verifyUserSchema = z.object({
 	params: z.object({
 		id: z.string({ required_error: 'User ID is required' }),
-		verificationToken: z.string({
+		verificationCode: z.string({
 			required_error: 'Verification token is required',
 		}),
 	}),
@@ -64,7 +64,7 @@ export const resetPasswordSchema = z.object({
 		}),
 	params: z.object({
 		id: z.string({ required_error: 'User ID is required' }),
-		passwordResetToken: z.string({
+		passwordResetCode: z.string({
 			required_error: 'Password reset token is required',
 		}),
 	}),

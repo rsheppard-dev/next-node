@@ -1,5 +1,5 @@
 import { boolean, pgEnum, primaryKey, uniqueIndex } from 'drizzle-orm/pg-core';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import {
 	pgTable,
 	uuid,
@@ -9,6 +9,8 @@ import {
 	text,
 } from 'drizzle-orm/pg-core';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+
+const nanoid = customAlphabet('0123456789', 6);
 
 export const rolesEnum = pgEnum('roles', ['admin', 'member']);
 
@@ -23,10 +25,10 @@ export const user = pgTable(
 		dob: date('date_of_birth'),
 		picture: varchar('picture', { length: 256 }),
 		isVerified: boolean('is_verified').notNull().default(false),
-		verificationToken: varchar('verification_token', { length: 256 }).default(
+		verificationCode: varchar('verification_code', { length: 256 }).default(
 			nanoid()
 		),
-		passwordResetToken: varchar('password_reset_token', { length: 256 }),
+		passwordResetCode: varchar('password_reset_code', { length: 256 }),
 		passwordResetExpiresAt: timestamp('password_reset_expires_at'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -43,8 +45,8 @@ export type NewUser = InferInsertModel<typeof user>;
 export type PublicUser = Omit<
 	User,
 	| 'password'
-	| 'verificationToken'
-	| 'passwordResetToken'
+	| 'verificationCode'
+	| 'passwordResetCode'
 	| 'passwordResetExpiresAt'
 > & { sessionId: string };
 
