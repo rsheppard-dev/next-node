@@ -19,13 +19,13 @@ import {
 	FormMessage,
 } from './ui/form';
 import { Input } from './ui/input';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { AlertCircle, Terminal } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import StatusMessage from './StatusMessage';
 
 export default function ForgotPasswordForm() {
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const router = useRouter();
 
 	const form = useForm<ForgotPasswordInput>({
 		resolver: zodResolver(forgotPasswordInputSchema),
@@ -34,13 +34,16 @@ export default function ForgotPasswordForm() {
 		},
 	});
 
+	const { isSubmitting } = form.formState;
+
 	async function onSubmit(values: ForgotPasswordInput) {
-		setIsSubmitting(true);
-		setSuccessMessage(null);
 		setErrorMessage(null);
 		try {
-			const response = await forgotPassword(values.email);
-			setSuccessMessage(response.data.message);
+			const response = await forgotPassword(values);
+
+			if (!response?.userId) throw Error();
+
+			router.push(`/forgot-password/verify?id=${response.userId}`);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);
@@ -48,25 +51,16 @@ export default function ForgotPasswordForm() {
 				setErrorMessage('An unknown error occurred');
 			}
 		}
-		setIsSubmitting(false);
 	}
 
 	return (
 		<Form {...form}>
 			{errorMessage ? (
-				<Alert variant='destructive' className='mb-10'>
-					<AlertCircle className='h-4 w-4' />
-					<AlertTitle>Sorry, login failed</AlertTitle>
-					<AlertDescription>{errorMessage}</AlertDescription>
-				</Alert>
-			) : null}
-
-			{successMessage ? (
-				<Alert variant='default' className='mb-10'>
-					<Terminal className='h-4 w-4' />
-					<AlertTitle>Check your inbox</AlertTitle>
-					<AlertDescription>{successMessage}</AlertDescription>
-				</Alert>
+				<StatusMessage
+					variant='destructive'
+					title='Something went wrong'
+					description={errorMessage}
+				/>
 			) : null}
 
 			<form

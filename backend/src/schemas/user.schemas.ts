@@ -33,9 +33,9 @@ export const getUserSchema = z.object({
 
 export const verifyUserSchema = z.object({
 	params: z.object({
-		id: z.string({ required_error: 'User ID is required' }),
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
 		verificationCode: z.string({
-			required_error: 'Verification token is required',
+			required_error: 'Verification code is required',
 		}),
 	}),
 });
@@ -45,6 +45,15 @@ export const forgotPasswordSchema = z.object({
 		email: z
 			.string({ required_error: 'Email is required' })
 			.email('Not a valid email'),
+	}),
+});
+
+export const verifyResetPasswordSchema = z.object({
+	params: z.object({
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
+		passwordResetCode: z.string({
+			required_error: 'Password reset code is required',
+		}),
 	}),
 });
 
@@ -63,9 +72,9 @@ export const resetPasswordSchema = z.object({
 			path: ['confirmPassword'],
 		}),
 	params: z.object({
-		id: z.string({ required_error: 'User ID is required' }),
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
 		passwordResetCode: z.string({
-			required_error: 'Password reset token is required',
+			required_error: 'Password reset code is required',
 		}),
 	}),
 });
@@ -74,5 +83,8 @@ export type CreateUserBody = z.infer<typeof createUserSchema>['body'];
 export type GetUserParams = z.infer<typeof getUserSchema>['params'];
 export type VerifyUserParams = z.infer<typeof verifyUserSchema>['params'];
 export type ForgotPasswordBody = z.infer<typeof forgotPasswordSchema>['body'];
+export type VerifyResetPasswordParams = z.infer<
+	typeof verifyResetPasswordSchema
+>['params'];
 export type ResetPasswordBody = z.infer<typeof resetPasswordSchema>['body'];
 export type ResetPasswordParams = z.infer<typeof resetPasswordSchema>['params'];

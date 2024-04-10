@@ -5,6 +5,7 @@ import {
 	GetUserParams,
 	ResetPasswordBody,
 	ResetPasswordParams,
+	VerifyResetPasswordParams,
 	VerifyUserParams,
 } from '../schemas/user.schemas';
 import {
@@ -19,6 +20,8 @@ import sendEmail from '../utils/mailer';
 import { Request, Response } from 'express';
 import { env } from '../../config/env';
 import { PublicUser } from '../db/schema';
+import { is } from 'drizzle-orm';
+import { isValid } from 'zod';
 
 export async function createUserHandler(
 	req: Request<{}, {}, CreateUserBody>,
@@ -84,36 +87,43 @@ export async function verifyUserHandler(
 	res: Response
 ) {
 	const { id, verificationCode } = req.params;
+	const message = 'Failed to verify user';
+	try {
+		// find user by id
+		const user = await getUserById(id);
 
-	// find user by id
-	const user = await getUserById(id);
+		if (!user)
+			return res.status(404).send({
+				statusCode: 404,
+				message,
+			});
 
-	if (!user)
-		return res.status(404).send({
-			statusCode: 404,
-			message: 'Could not verify user',
+		// check if user verified
+		if (user.isVerified)
+			return res.status(400).send({
+				statusCode: 400,
+				message: 'User already verified',
+			});
+
+		// check if verification token matches
+		if (user.verificationCode !== verificationCode)
+			return res.status(401).send({
+				statusCode: 401,
+				message,
+			});
+
+		// update user to be verified
+		user.isVerified = true;
+		user.verificationCode = null;
+		const updatedUser = await updateUser(user);
+
+		return res.send(removePrivateUserProps(updatedUser));
+	} catch (error) {
+		res.status(401).send({
+			statusCode: 401,
+			message,
 		});
-
-	// check if user verified
-	if (user.isVerified)
-		return res.status(400).send({
-			statusCode: 400,
-			message: 'User already verified',
-		});
-
-	// check if verification token matches
-	if (user.verificationCode !== verificationCode)
-		return res.status(400).send({
-			statusCode: 400,
-			message: 'Could not verify user',
-		});
-
-	// update user to be verified
-	user.isVerified = true;
-	user.verificationCode = null;
-	const updatedUser = await updateUser(user);
-
-	return res.send(removePrivateUserProps(updatedUser));
+	}
 }
 
 export async function forgotPasswordHandler(
@@ -160,11 +170,57 @@ export async function forgotPasswordHandler(
 
 		logger.debug(`Password reset token sent to ${email}`);
 
-		return res.send({ message });
+		return res.send({
+			userId: user.id,
+			message,
+		});
 	} catch (error) {
 		return res.status(400).send({
 			statusCode: 500,
 			message: 'Failed to generate password reset token',
+		});
+	}
+}
+
+export async function verifyResetPasswordHandler(
+	req: Request<VerifyResetPasswordParams>,
+	res: Response
+) {
+	const { id, passwordResetCode } = req.params;
+	const message = 'Failed to verify user';
+
+	try {
+		const user = await getUserById(id);
+
+		if (
+			!user ||
+			!user.passwordResetCode ||
+			user.passwordResetCode !== passwordResetCode
+		) {
+			return res.status(401).send({
+				statusCode: 401,
+				isValid: false,
+				message,
+			});
+		}
+
+		if (
+			user.passwordResetExpiresAt &&
+			user.passwordResetExpiresAt < new Date()
+		) {
+			return res.status(401).send({
+				statusCode: 401,
+				isValid: false,
+				message: 'Password reset code has expired',
+			});
+		}
+
+		return res.send({ isValid: true, message: 'Password reset code is valid' });
+	} catch (error) {
+		res.status(401).send({
+			statusCode: 401,
+			isValid: false,
+			message,
 		});
 	}
 }
@@ -176,33 +232,43 @@ export async function resetPasswordHandler(
 	const { id, passwordResetCode } = req.params;
 	const { password } = req.body;
 
-	const user = await getUserById(id);
+	try {
+		const user = await getUserById(id);
 
-	if (
-		!user ||
-		!user.passwordResetCode ||
-		user.passwordResetCode !== passwordResetCode
-	) {
-		return res.status(401).send({
-			statusCode: 401,
-			message: 'Could not reset password',
+		if (
+			!user ||
+			!user.passwordResetCode ||
+			user.passwordResetCode !== passwordResetCode
+		) {
+			return res.status(401).send({
+				statusCode: 401,
+				message: 'Could not reset password',
+			});
+		}
+
+		if (
+			user.passwordResetExpiresAt &&
+			user.passwordResetExpiresAt < new Date()
+		) {
+			return res.status(401).send({
+				statusCode: 401,
+				message: 'Password reset code has expired',
+			});
+		}
+
+		user.passwordResetCode = null;
+		user.passwordResetExpiresAt = null;
+		user.password = password;
+
+		const updatedUser = await updateUser(user);
+
+		return res.send(removePrivateUserProps(updatedUser));
+	} catch (error) {
+		res.status(400).send({
+			statusCode: 400,
+			message: 'Failed to reset password',
 		});
 	}
-
-	if (user.passwordResetExpiresAt && user.passwordResetExpiresAt < new Date()) {
-		return res.status(401).send({
-			statusCode: 401,
-			message: 'Password reset token has expired',
-		});
-	}
-
-	user.passwordResetCode = null;
-	user.passwordResetExpiresAt = null;
-	user.password = password;
-
-	const updatedUser = await updateUser(user);
-
-	return res.send(removePrivateUserProps(updatedUser));
 }
 
 export async function getCurrentUserHandler(

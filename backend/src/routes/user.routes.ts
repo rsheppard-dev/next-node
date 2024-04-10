@@ -5,6 +5,7 @@ import {
 	getCurrentUserHandler,
 	getUserHandler,
 	resetPasswordHandler,
+	verifyResetPasswordHandler,
 	verifyUserHandler,
 } from '../controllers/user.controllers';
 import validateResource from '../middleware/validateResource';
@@ -13,6 +14,7 @@ import {
 	forgotPasswordSchema,
 	getUserSchema,
 	resetPasswordSchema,
+	verifyResetPasswordSchema,
 	verifyUserSchema,
 } from '../schemas/user.schemas';
 import requireUser from '../middleware/requireUser';
@@ -35,6 +37,12 @@ router.post(
 	'/forgot-password',
 	validateResource(forgotPasswordSchema),
 	forgotPasswordHandler
+);
+
+router.get(
+	'/forgot-password/:id/:passwordResetCode',
+	validateResource(verifyResetPasswordSchema),
+	verifyResetPasswordHandler
 );
 
 router.post(

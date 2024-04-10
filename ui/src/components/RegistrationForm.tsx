@@ -19,13 +19,12 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { isAxiosError } from 'axios';
-import { AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import instance from '@/utils/axios';
+import { registerUser } from '@/services/user.services';
+import StatusMessage from './StatusMessage';
 
 export default function RegistrationForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+
 	const router = useRouter();
 
 	const form = useForm<RegistrationInput>({
@@ -39,12 +38,17 @@ export default function RegistrationForm() {
 		},
 	});
 
+	const { isSubmitting } = form.formState;
+
 	async function onSubmit(values: RegistrationInput) {
 		setErrorMessage(null);
-		setIsSubmitting(true);
+
 		try {
-			await instance.post('/api/users', values);
-			router.push('/login');
+			const user = await registerUser(values);
+
+			if (!user?.id) throw Error;
+
+			router.push(`/register/verify?id=${user.id}`);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);
@@ -52,16 +56,15 @@ export default function RegistrationForm() {
 				setErrorMessage('An unknown error occurred');
 			}
 		}
-		setIsSubmitting(false);
 	}
 	return (
 		<Form {...form}>
 			{errorMessage ? (
-				<Alert variant='destructive' className='mb-10'>
-					<AlertCircle className='h-4 w-4' />
-					<AlertTitle>Sorry, registration failed</AlertTitle>
-					<AlertDescription>{errorMessage}</AlertDescription>
-				</Alert>
+				<StatusMessage
+					variant='destructive'
+					title='Registration Failed'
+					description={errorMessage}
+				/>
 			) : null}
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}

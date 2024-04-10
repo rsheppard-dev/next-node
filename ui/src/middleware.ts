@@ -2,18 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const publicPaths = [
-	'/login',
-	'/register',
-	'/forgot-password',
-	'/user/verification',
+	/^\/login$/,
+	/^\/register(\/.*)?$/,
+	/^\/forgot-password(\/.*)?$/,
 ];
-const privatePaths = ['/user'];
+const protectedPaths = [/^\/user(\/.*)?$/];
 
-// This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
 	const path = request.nextUrl.pathname;
-	const isPublicPath = publicPaths.includes(path);
-	const isPrivatePath = privatePaths.includes(path);
+	const isPublicPath = publicPaths.some(pattern => pattern.test(path));
+	const isProtectedPath = protectedPaths.some(pattern => pattern.test(path));
 	const refreshToken = request.cookies.get('refreshToken')?.value;
 
 	// user is already authenticated but trying to access a public path
@@ -21,15 +19,14 @@ export function middleware(request: NextRequest) {
 		return NextResponse.redirect(new URL('/user', request.nextUrl));
 	}
 
-	// user is not authenticated and trying to access a private path
-	if (isPrivatePath && !refreshToken) {
+	// user is not authenticated and trying to access a protected path
+	if (isProtectedPath && !refreshToken) {
 		return NextResponse.redirect(
-			new URL(`/login?from=${path}`, request.nextUrl)
+			new URL(`/login?from=${encodeURIComponent(path)}`, request.nextUrl)
 		);
 	}
 }
 
-// See "Matching Paths" below to learn more
 export const config = {
 	matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

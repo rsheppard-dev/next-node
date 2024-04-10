@@ -26,7 +26,7 @@ export const user = pgTable(
 		picture: varchar('picture', { length: 256 }),
 		isVerified: boolean('is_verified').notNull().default(false),
 		verificationCode: varchar('verification_code', { length: 256 }).default(
-			nanoid()
+			nanoid(6)
 		),
 		passwordResetCode: varchar('password_reset_code', { length: 256 }),
 		passwordResetExpiresAt: timestamp('password_reset_expires_at'),

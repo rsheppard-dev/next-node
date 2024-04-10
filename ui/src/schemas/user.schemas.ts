@@ -23,5 +23,25 @@ export const forgotPasswordInputSchema = z.object({
 	email: z.string().email({ message: 'Invalid email address' }),
 });
 
+export const verifyInputSchema = z.object({
+	id: z.string().uuid({ message: 'Invalid user ID' }),
+	code: z
+		.string()
+		.length(6, 'Code must be 6 digits long')
+		.regex(/^\d+$/, 'Code can only contain numbers'),
+});
+
+export const resetPasswordInputSchema = z
+	.object({
+		password: z.string().min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string().min(1, 'Confirm password is required'),
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword'],
+	});
+
 export type RegistrationInput = z.infer<typeof registrationInputSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordInputSchema>;
+export type VerifyInput = z.infer<typeof verifyInputSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;

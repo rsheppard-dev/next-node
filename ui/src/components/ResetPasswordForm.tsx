@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import {
+	ResetPasswordInput,
+	resetPasswordInputSchema,
+} from '@/schemas/user.schemas';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -15,35 +19,35 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { isAxiosError } from 'axios';
-import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
-import { useSessionSelectors } from '@/stores/session.store';
 import StatusMessage from './StatusMessage';
+import { resetPassword } from '@/services/user.services';
 
-export default function LoginForm() {
+export default function ResetPasswordForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const login = useSessionSelectors.use.login();
 
-	const message = searchParams.get('message');
+	const id = searchParams.get('id') || '';
+	const code = searchParams.get('code') || '';
 
-	const form = useForm<LoginInput>({
-		resolver: zodResolver(loginInputSchema),
+	const form = useForm<ResetPasswordInput>({
+		resolver: zodResolver(resetPasswordInputSchema),
 		defaultValues: {
-			email: '',
 			password: '',
+			confirmPassword: '',
 		},
 	});
 
 	const { isSubmitting } = form.formState;
 
-	async function onSubmit(values: LoginInput) {
+	async function onSubmit(values: ResetPasswordInput) {
 		setErrorMessage(null);
-		try {
-			await login(values);
 
-			const destination = searchParams.get('from') || '/';
-			router.push(destination);
+		try {
+			await resetPassword(values, id, code);
+			const message = 'Password reset successfully.';
+			router.push(`/login?message=${encodeURIComponent(message)}`);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);
@@ -54,13 +58,10 @@ export default function LoginForm() {
 	}
 	return (
 		<Form {...form}>
-			{message ? (
-				<StatusMessage title='Please Login' description={message} />
-			) : null}
 			{errorMessage ? (
 				<StatusMessage
 					variant='destructive'
-					title='Login Failed'
+					title='Failed to change password'
 					description={errorMessage}
 				/>
 			) : null}
@@ -70,23 +71,10 @@ export default function LoginForm() {
 			>
 				<FormField
 					control={form.control}
-					name='email'
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>Email</FormLabel>
-							<FormControl>
-								<Input type='email' {...field} />
-							</FormControl>
-							<FormMessage />
-						</FormItem>
-					)}
-				/>
-				<FormField
-					control={form.control}
 					name='password'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Password</FormLabel>
+							<FormLabel>New Password</FormLabel>
 							<FormControl>
 								<Input type='password' {...field} />
 							</FormControl>
@@ -94,8 +82,21 @@ export default function LoginForm() {
 						</FormItem>
 					)}
 				/>
-				<Button type='submit' disabled={isSubmitting}>
-					Login
+				<FormField
+					control={form.control}
+					name='confirmPassword'
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel>Confirm New Password</FormLabel>
+							<FormControl>
+								<Input type='password' {...field} />
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
+				<Button disabled={isSubmitting} type='submit'>
+					Change Password
 				</Button>
 			</form>
 		</Form>

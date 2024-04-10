@@ -42,7 +42,7 @@ export default function NavBar() {
 					</NavigationMenuItem>
 					{isAuthenticated ? (
 						<NavigationMenuItem>
-							<Link href='/profile' legacyBehavior passHref>
+							<Link href='/user' legacyBehavior passHref>
 								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 									Profile
 								</NavigationMenuLink>
@@ -67,7 +67,7 @@ export default function NavBar() {
 					</NavigationMenuItem>
 					{!isAuthenticated ? (
 						<NavigationMenuItem>
-							<Link href='register' legacyBehavior passHref>
+							<Link href='/register' legacyBehavior passHref>
 								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 									Register
 								</NavigationMenuLink>
