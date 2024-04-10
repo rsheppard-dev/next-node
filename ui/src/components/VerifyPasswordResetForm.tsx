@@ -32,13 +32,13 @@ export default function VerifyPasswordResetForm() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 
-	const id = searchParams.get('id') || '';
+	const email = searchParams.get('email') || '';
 	const code = searchParams.get('code') || '';
 
 	const form = useForm<VerifyInput>({
 		resolver: zodResolver(verifyInputSchema),
 		defaultValues: {
-			id,
+			email,
 			code,
 		},
 	});
@@ -51,10 +51,12 @@ export default function VerifyPasswordResetForm() {
 			setErrorMessage(null);
 
 			try {
-				const response = await verifyUser(values);
+				await verifyUser(values);
 
 				router.push(
-					`/forgot-password/reset?id=${values.id}&code=${values.code}`
+					`/forgot-password/reset?email=${encodeURIComponent(
+						values.email
+					)}&code=${values.code}`
 				);
 			} catch (error) {
 				if (isAxiosError(error)) {
@@ -74,11 +76,16 @@ export default function VerifyPasswordResetForm() {
 	}, [watchedCode, onSubmit, form]);
 	return (
 		<Form {...form}>
+			<StatusMessage
+				title='Check your inbox'
+				description='If that email is registered with us you will receive a password reset code. Please enter it below.'
+			/>
+
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
 				className='w-2/3 space-y-6 mb-6'
 			>
-				<input type='hidden' {...form.register('id')} value={id} />
+				<input type='hidden' {...form.register('email')} value={email} />
 				<FormField
 					control={form.control}
 					name='code'

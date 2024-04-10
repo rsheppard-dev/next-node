@@ -13,34 +13,46 @@ export async function createUser(data: NewUser) {
 }
 
 export async function updateUser(data: User) {
-	if (data.password && !data.password.startsWith('$argon2')) {
-		data.password = await hashPassword(data.password);
+	try {
+		if (data.password && !data.password.startsWith('$argon2')) {
+			data.password = await hashPassword(data.password);
+		}
+
+		const result = await db
+			.update(user)
+			.set({
+				...data,
+				updatedAt: new Date(),
+			})
+			.where(eq(user.id, data.id))
+			.returning();
+
+		return result[0];
+	} catch (error) {
+		throw error;
 	}
-
-	const result = await db
-		.update(user)
-		.set({
-			...data,
-			updatedAt: new Date(),
-		})
-		.where(eq(user.id, data.id))
-		.returning();
-
-	return result[0];
 }
 
 export async function getUsers() {
-	const result = await db.query.user.findMany();
+	try {
+		const result = await db.query.user.findMany();
 
-	return result;
+		return result;
+	} catch (error) {
+		throw error;
+	}
 }
 
 export async function getUserById(id: string) {
-	const result = await db.query.user.findFirst({
-		where: eq(user.id, id),
-	});
+	try {
+		const result = await db.query.user.findFirst({
+			where: eq(user.id, id),
+		});
 
-	return result;
+		return result;
+	} catch (error) {
+		throw error;
+	}
 }
 
 export async function getUserByEmail(email: string) {
@@ -52,6 +64,7 @@ export async function getUserByEmail(email: string) {
 		return result;
 	} catch (error) {
 		logger.error(error, 'Error getting user by email');
+		throw error;
 	}
 }
 

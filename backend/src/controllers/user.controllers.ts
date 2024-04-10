@@ -4,7 +4,6 @@ import {
 	ForgotPasswordBody,
 	GetUserParams,
 	ResetPasswordBody,
-	ResetPasswordParams,
 	VerifyResetPasswordParams,
 	VerifyUserParams,
 } from '../schemas/user.schemas';
@@ -20,8 +19,6 @@ import sendEmail from '../utils/mailer';
 import { Request, Response } from 'express';
 import { env } from '../../config/env';
 import { PublicUser } from '../db/schema';
-import { is } from 'drizzle-orm';
-import { isValid } from 'zod';
 
 export async function createUserHandler(
 	req: Request<{}, {}, CreateUserBody>,
@@ -142,7 +139,9 @@ export async function forgotPasswordHandler(
 
 		if (!user) {
 			logger.debug(`User with email ${email} not found`);
-			return res.send({ message });
+			return res.send({
+				message,
+			});
 		}
 
 		if (!user.isVerified) {
@@ -165,19 +164,18 @@ export async function forgotPasswordHandler(
 			from: 'Secret Gifter <noreply@secretgifter.io>',
 			to: user.email,
 			subject: 'Password Reset',
-			text: `Click the link to reset your password: Token: ${passwordResetCode} ID: ${user.id}`,
+			text: `Click the link to reset your password: Token: ${passwordResetCode}`,
 		});
 
 		logger.debug(`Password reset token sent to ${email}`);
 
 		return res.send({
-			userId: user.id,
 			message,
 		});
 	} catch (error) {
 		return res.status(400).send({
 			statusCode: 500,
-			message: 'Failed to generate password reset token',
+			message: 'Failed to generate password reset code',
 		});
 	}
 }
@@ -186,11 +184,11 @@ export async function verifyResetPasswordHandler(
 	req: Request<VerifyResetPasswordParams>,
 	res: Response
 ) {
-	const { id, passwordResetCode } = req.params;
+	const { email, passwordResetCode } = req.params;
 	const message = 'Failed to verify user';
 
 	try {
-		const user = await getUserById(id);
+		const user = await getUserByEmail(email);
 
 		if (
 			!user ||
@@ -226,14 +224,14 @@ export async function verifyResetPasswordHandler(
 }
 
 export async function resetPasswordHandler(
-	req: Request<ResetPasswordParams, {}, ResetPasswordBody>,
+	req: Request<{}, {}, ResetPasswordBody>,
 	res: Response
 ) {
-	const { id, passwordResetCode } = req.params;
-	const { password } = req.body;
+	const { password, passwordResetCode, email } = req.body;
+	const message = 'Failed to reset password';
 
 	try {
-		const user = await getUserById(id);
+		const user = await getUserByEmail(email);
 
 		if (
 			!user ||
@@ -242,7 +240,7 @@ export async function resetPasswordHandler(
 		) {
 			return res.status(401).send({
 				statusCode: 401,
-				message: 'Could not reset password',
+				message,
 			});
 		}
 
@@ -266,7 +264,7 @@ export async function resetPasswordHandler(
 	} catch (error) {
 		res.status(400).send({
 			statusCode: 400,
-			message: 'Failed to reset password',
+			message,
 		});
 	}
 }

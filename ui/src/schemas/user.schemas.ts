@@ -24,7 +24,7 @@ export const forgotPasswordInputSchema = z.object({
 });
 
 export const verifyInputSchema = z.object({
-	id: z.string().uuid({ message: 'Invalid user ID' }),
+	email: z.string().email({ message: 'Invalid email address' }),
 	code: z
 		.string()
 		.length(6, 'Code must be 6 digits long')
@@ -33,6 +33,11 @@ export const verifyInputSchema = z.object({
 
 export const resetPasswordInputSchema = z
 	.object({
+		email: z.string().email({ message: 'Invalid email address' }),
+		passwordResetCode: z
+			.string()
+			.length(6, 'Code must be 6 digits long')
+			.regex(/^\d+$/, 'Code can only contain numbers'),
 		password: z.string().min(8, 'Password must be at least 8 characters'),
 		confirmPassword: z.string().min(1, 'Confirm password is required'),
 	})

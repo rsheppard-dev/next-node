@@ -40,13 +40,13 @@ router.post(
 );
 
 router.get(
-	'/forgot-password/:id/:passwordResetCode',
+	'/forgot-password/verify/:email/:passwordResetCode',
 	validateResource(verifyResetPasswordSchema),
 	verifyResetPasswordHandler
 );
 
 router.post(
-	'/reset-password/:id/:passwordResetCode',
+	'/reset-password',
 	validateResource(resetPasswordSchema),
 	resetPasswordHandler
 );

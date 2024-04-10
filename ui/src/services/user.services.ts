@@ -21,7 +21,7 @@ export async function registerUser(values: RegistrationInput) {
 export async function verifyNewUser(values: VerifyInput) {
 	try {
 		const response = await axios.get<{ message: string }>(
-			`/api/users/verify/${values.id}/${values.code}`
+			`/api/users/verify/${values.email}/${values.code}`
 		);
 
 		return response.data;
@@ -33,7 +33,7 @@ export async function verifyNewUser(values: VerifyInput) {
 
 export async function forgotPassword(values: ForgotPasswordInput) {
 	try {
-		const response = await axios.post<{ userId: string; message: string }>(
+		const response = await axios.post<{ message: string }>(
 			'/api/users/forgot-password',
 			values
 		);
@@ -48,7 +48,9 @@ export async function forgotPassword(values: ForgotPasswordInput) {
 export async function verifyUser(values: VerifyInput) {
 	try {
 		const response = await axios.get<{ isValid: boolean; message: string }>(
-			`/api/users/forgot-password/${values.id}/${values.code}`
+			`/api/users/forgot-password/verify/${encodeURIComponent(
+				values.email
+			)}/${encodeURIComponent(values.code)}`
 		);
 
 		return response.data;
@@ -58,14 +60,10 @@ export async function verifyUser(values: VerifyInput) {
 	}
 }
 
-export async function resetPassword(
-	values: ResetPasswordInput,
-	userId: string,
-	passwordResetCode: string
-) {
+export async function resetPassword(values: ResetPasswordInput) {
 	try {
 		const response = await axios.post<User>(
-			`/api/users/reset-password/${userId}/${passwordResetCode}`,
+			`/api/users/reset-password`,
 			values
 		);
 

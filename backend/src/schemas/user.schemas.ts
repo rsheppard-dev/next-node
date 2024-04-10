@@ -34,9 +34,12 @@ export const getUserSchema = z.object({
 export const verifyUserSchema = z.object({
 	params: z.object({
 		id: z.string({ required_error: 'User ID is required' }).uuid(),
-		verificationCode: z.string({
-			required_error: 'Verification code is required',
-		}),
+		verificationCode: z
+			.string({
+				required_error: 'Verification code is required',
+			})
+			.length(6, 'Code must be 6 digits long')
+			.regex(/^\d+$/, 'Code can only contain numbers'),
 	}),
 });
 
@@ -50,16 +53,30 @@ export const forgotPasswordSchema = z.object({
 
 export const verifyResetPasswordSchema = z.object({
 	params: z.object({
-		id: z.string({ required_error: 'User ID is required' }).uuid(),
-		passwordResetCode: z.string({
-			required_error: 'Password reset code is required',
-		}),
+		email: z
+			.string({ required_error: 'Email is required' })
+			.email('Not a valid email'),
+		passwordResetCode: z
+			.string({
+				required_error: 'Password reset code is required',
+			})
+			.length(6, 'Code must be 6 digits long')
+			.regex(/^\d+$/, 'Code can only contain numbers'),
 	}),
 });
 
 export const resetPasswordSchema = z.object({
 	body: z
 		.object({
+			email: z
+				.string({ required_error: 'Email is required' })
+				.email('Not a valid email'),
+			passwordResetCode: z
+				.string({
+					required_error: 'Password reset code is required',
+				})
+				.length(6, 'Code must be 6 digits long')
+				.regex(/^\d+$/, 'Code can only contain numbers'),
 			password: z
 				.string({ required_error: 'Password is required' })
 				.min(8, 'Password must be at least 8 characters'),
@@ -71,12 +88,6 @@ export const resetPasswordSchema = z.object({
 			message: 'Passwords do not match',
 			path: ['confirmPassword'],
 		}),
-	params: z.object({
-		id: z.string({ required_error: 'User ID is required' }).uuid(),
-		passwordResetCode: z.string({
-			required_error: 'Password reset code is required',
-		}),
-	}),
 });
 
 export type CreateUserBody = z.infer<typeof createUserSchema>['body'];
@@ -87,4 +98,3 @@ export type VerifyResetPasswordParams = z.infer<
 	typeof verifyResetPasswordSchema
 >['params'];
 export type ResetPasswordBody = z.infer<typeof resetPasswordSchema>['body'];
-export type ResetPasswordParams = z.infer<typeof resetPasswordSchema>['params'];

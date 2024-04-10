@@ -41,9 +41,9 @@ export default function ForgotPasswordForm() {
 		try {
 			const response = await forgotPassword(values);
 
-			if (!response?.userId) throw Error();
-
-			router.push(`/forgot-password/verify?id=${response.userId}`);
+			router.push(
+				`/forgot-password/verify?email=${encodeURIComponent(values.email)}`
+			);
 		} catch (error) {
 			if (isAxiosError(error)) {
 				setErrorMessage(error.response?.data?.message);
@@ -65,7 +65,7 @@ export default function ForgotPasswordForm() {
 
 			<form
 				onSubmit={form.handleSubmit(onSubmit)}
-				className='max-w-md space-y-4'
+				className='flex items-end gap-4 '
 			>
 				<FormField
 					control={form.control}

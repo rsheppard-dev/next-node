@@ -28,12 +28,14 @@ export default function ResetPasswordForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	const id = searchParams.get('id') || '';
-	const code = searchParams.get('code') || '';
+	const email = searchParams.get('email') || '';
+	const passwordResetCode = searchParams.get('code') || '';
 
 	const form = useForm<ResetPasswordInput>({
 		resolver: zodResolver(resetPasswordInputSchema),
 		defaultValues: {
+			email,
+			passwordResetCode,
 			password: '',
 			confirmPassword: '',
 		},
@@ -45,7 +47,7 @@ export default function ResetPasswordForm() {
 		setErrorMessage(null);
 
 		try {
-			await resetPassword(values, id, code);
+			await resetPassword(values);
 			const message = 'Password reset successfully.';
 			router.push(`/login?message=${encodeURIComponent(message)}`);
 		} catch (error) {
@@ -69,6 +71,12 @@ export default function ResetPasswordForm() {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className='max-w-md space-y-4'
 			>
+				<input type='hidden' {...form.register('email')} value={email} />
+				<input
+					type='hidden'
+					{...form.register('passwordResetCode')}
+					value={passwordResetCode}
+				/>
 				<FormField
 					control={form.control}
 					name='password'
