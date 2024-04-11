@@ -8,13 +8,13 @@ import {
 	timestamp,
 	text,
 } from 'drizzle-orm/pg-core';
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { InferInsertModel, InferSelectModel, relations } from 'drizzle-orm';
 
 const nanoid = customAlphabet('0123456789', 6);
 
 export const rolesEnum = pgEnum('roles', ['admin', 'member']);
 
-export const user = pgTable(
+export const users = pgTable(
 	'users',
 	{
 		id: uuid('id').primaryKey().defaultRandom(),
@@ -40,8 +40,13 @@ export const user = pgTable(
 	}
 );
 
-export type User = InferSelectModel<typeof user>;
-export type NewUser = InferInsertModel<typeof user>;
+export const usersRelations = relations(users, ({ many }) => ({
+	usersToGroups: many(usersToGroups),
+	sessions: many(sessions),
+}));
+
+export type User = InferSelectModel<typeof users>;
+export type NewUser = InferInsertModel<typeof users>;
 export type PublicUser = Omit<
 	User,
 	| 'password'
@@ -50,7 +55,7 @@ export type PublicUser = Omit<
 	| 'passwordResetExpiresAt'
 > & { sessionId: string };
 
-export const group = pgTable('groups', {
+export const groups = pgTable('groups', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	name: varchar('name', { length: 256 }).notNull(),
 	description: text('description'),
@@ -58,22 +63,23 @@ export const group = pgTable('groups', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export type Group = InferSelectModel<typeof group>;
-export type NewGroup = InferInsertModel<typeof group>;
+export const groupRelations = relations(groups, ({ many }) => ({
+	usersToGroups: many(usersToGroups),
+}));
 
-export const groupUsers = pgTable(
-	'group_users',
+export type Group = InferSelectModel<typeof groups>;
+export type NewGroup = InferInsertModel<typeof groups>;
+
+export const usersToGroups = pgTable(
+	'users_to_groups',
 	{
-		id: uuid('id').defaultRandom(),
 		userId: uuid('user_id')
-			.references(() => user.id, { onDelete: 'cascade' })
+			.references(() => users.id, { onDelete: 'cascade' })
 			.notNull(),
 		groupId: uuid('group_id')
-			.references(() => group.id, { onDelete: 'cascade' })
+			.references(() => groups.id, { onDelete: 'cascade' })
 			.notNull(),
 		role: rolesEnum('role').notNull(),
-		createdAt: timestamp('created_at').notNull().defaultNow(),
-		updatedAt: timestamp('updated_at').notNull().defaultNow(),
 	},
 	table => {
 		return {
@@ -82,13 +88,24 @@ export const groupUsers = pgTable(
 	}
 );
 
-export type GroupUser = InferSelectModel<typeof groupUsers>;
-export type NewGroupUser = InferInsertModel<typeof groupUsers>;
+export const usersToGroupsRelations = relations(usersToGroups, ({ one }) => ({
+	groups: one(groups, {
+		fields: [usersToGroups.groupId],
+		references: [groups.id],
+	}),
+	users: one(users, {
+		fields: [usersToGroups.userId],
+		references: [users.id],
+	}),
+}));
 
-export const session = pgTable('sessions', {
+export type UsersToGroups = InferSelectModel<typeof usersToGroups>;
+export type NewUsersToGroups = InferInsertModel<typeof usersToGroups>;
+
+export const sessions = pgTable('sessions', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	userId: uuid('user_id')
-		.references(() => user.id, { onDelete: 'cascade' })
+		.references(() => users.id, { onDelete: 'cascade' })
 		.notNull(),
 	isValid: boolean('is_valid').notNull().default(true),
 	userAgent: varchar('user_agent', { length: 256 }),
@@ -96,5 +113,12 @@ export const session = pgTable('sessions', {
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
-export type Session = InferSelectModel<typeof session>;
-export type NewSession = InferInsertModel<typeof session>;
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id],
+	}),
+}));
+
+export type Session = InferSelectModel<typeof sessions>;
+export type NewSession = InferInsertModel<typeof sessions>;

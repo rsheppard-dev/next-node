@@ -5,106 +5,22 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1711925008441,
-      "tag": "0000_great_scarecrow",
+      "when": 1712832226151,
+      "tag": "0000_icy_the_captain",
       "breakpoints": false
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1711925038901,
-      "tag": "0001_strong_smiling_tiger",
+      "when": 1712832237691,
+      "tag": "0001_whole_redwing",
       "breakpoints": false
     },
     {
       "idx": 2,
       "version": "5",
-      "when": 1711956340187,
-      "tag": "0002_fat_echo",
-      "breakpoints": false
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1711959648351,
-      "tag": "0003_lying_angel",
-      "breakpoints": false
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1711992150780,
-      "tag": "0004_concerned_shotgun",
-      "breakpoints": false
-    },
-    {
-      "idx": 5,
-      "version": "5",
-      "when": 1712008212695,
-      "tag": "0005_wet_tinkerer",
-      "breakpoints": false
-    },
-    {
-      "idx": 6,
-      "version": "5",
-      "when": 1712073629913,
-      "tag": "0006_neat_tusk",
-      "breakpoints": false
-    },
-    {
-      "idx": 7,
-      "version": "5",
-      "when": 1712090512942,
-      "tag": "0007_glorious_magik",
-      "breakpoints": false
-    },
-    {
-      "idx": 8,
-      "version": "5",
-      "when": 1712091480206,
-      "tag": "0008_cheerful_kang",
-      "breakpoints": false
-    },
-    {
-      "idx": 9,
-      "version": "5",
-      "when": 1712261015828,
-      "tag": "0009_lowly_blade",
-      "breakpoints": false
-    },
-    {
-      "idx": 10,
-      "version": "5",
-      "when": 1712470843749,
-      "tag": "0010_amusing_the_initiative",
-      "breakpoints": false
-    },
-    {
-      "idx": 11,
-      "version": "5",
-      "when": 1712702213289,
-      "tag": "0011_tiresome_landau",
-      "breakpoints": false
-    },
-    {
-      "idx": 12,
-      "version": "5",
-      "when": 1712703497427,
-      "tag": "0012_legal_jasper_sitwell",
-      "breakpoints": false
-    },
-    {
-      "idx": 13,
-      "version": "5",
-      "when": 1712703593406,
-      "tag": "0013_peaceful_purple_man",
-      "breakpoints": false
-    },
-    {
-      "idx": 14,
-      "version": "5",
-      "when": 1712740113375,
-      "tag": "0014_nasty_doorman",
+      "when": 1712834803890,
+      "tag": "0002_brown_bloodaxe",
       "breakpoints": false
     }
   ]

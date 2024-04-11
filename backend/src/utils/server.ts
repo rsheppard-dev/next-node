@@ -12,6 +12,7 @@ export default function createServer() {
 	app.use(cors({ origin: env.ORIGIN, credentials: true }));
 	app.use(express.json());
 	app.use(deserialiseUser);
+
 	app.use(router);
 
 	return app;

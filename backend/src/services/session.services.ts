@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { Session, session, User } from '../db/schema';
+import { Session, sessions, User } from '../db/schema';
 import { logger } from '../utils/logger';
 import argon2 from 'argon2';
 import { signJwt, verifyJwt } from '../utils/jwt';
@@ -17,7 +17,7 @@ export const refreshCookieOptions = {
 export async function createSession(userId: string, userAgent?: string) {
 	try {
 		const newSession = await db
-			.insert(session)
+			.insert(sessions)
 			.values({
 				userId,
 				userAgent,
@@ -33,11 +33,11 @@ export async function createSession(userId: string, userAgent?: string) {
 
 export async function getUserSessions(userId: string) {
 	try {
-		const sessions = await db.query.session.findMany({
-			where: eq(session.userId, userId) && eq(session.isValid, true),
+		const results = await db.query.sessions.findMany({
+			where: eq(sessions.userId, userId) && eq(sessions.isValid, true),
 		});
 
-		return sessions;
+		return results;
 	} catch (error) {
 		throw error;
 	}
@@ -45,8 +45,8 @@ export async function getUserSessions(userId: string) {
 
 export async function getSessionById(sessionId: string) {
 	try {
-		const result = await db.query.session.findFirst({
-			where: eq(session.id, sessionId),
+		const result = await db.query.sessions.findFirst({
+			where: eq(sessions.id, sessionId),
 		});
 
 		return result;
@@ -59,12 +59,12 @@ export async function getSessionById(sessionId: string) {
 export async function updateSession(data: Session) {
 	try {
 		const result = await db
-			.update(session)
+			.update(sessions)
 			.set({
 				...data,
 				updatedAt: new Date(),
 			})
-			.where(eq(session.id, data.id))
+			.where(eq(sessions.id, data.id))
 			.returning();
 
 		return result[0];
@@ -77,8 +77,8 @@ export async function updateSession(data: Session) {
 export async function deleteSession(sessionId: string) {
 	try {
 		const result = await db
-			.delete(session)
-			.where(eq(session.id, sessionId))
+			.delete(sessions)
+			.where(eq(sessions.id, sessionId))
 			.returning();
 
 		return result[0];

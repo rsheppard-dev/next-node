@@ -1,13 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { NewUser, User, user } from '../db/schema';
+import { NewUser, User, users } from '../db/schema';
 import argon2 from 'argon2';
 import { logger } from '../utils/logger';
 
 export async function createUser(data: NewUser) {
 	data.password = await hashPassword(data.password);
 
-	const result = await db.insert(user).values(data).returning();
+	const result = await db.insert(users).values(data).returning();
 
 	return result[0];
 }
@@ -19,12 +19,12 @@ export async function updateUser(data: User) {
 		}
 
 		const result = await db
-			.update(user)
+			.update(users)
 			.set({
 				...data,
 				updatedAt: new Date(),
 			})
-			.where(eq(user.id, data.id))
+			.where(eq(users.id, data.id))
 			.returning();
 
 		return result[0];
@@ -35,7 +35,7 @@ export async function updateUser(data: User) {
 
 export async function getUsers() {
 	try {
-		const result = await db.query.user.findMany();
+		const result = await db.query.users.findMany();
 
 		return result;
 	} catch (error) {
@@ -45,8 +45,8 @@ export async function getUsers() {
 
 export async function getUserById(id: string) {
 	try {
-		const result = await db.query.user.findFirst({
-			where: eq(user.id, id),
+		const result = await db.query.users.findFirst({
+			where: eq(users.id, id),
 		});
 
 		return result;
@@ -57,13 +57,23 @@ export async function getUserById(id: string) {
 
 export async function getUserByEmail(email: string) {
 	try {
-		const result = await db.query.user.findFirst({
-			where: eq(user.email, email),
+		const result = await db.query.users.findFirst({
+			where: eq(users.email, email),
 		});
 
 		return result;
 	} catch (error) {
 		logger.error(error, 'Error getting user by email');
+		throw error;
+	}
+}
+
+export async function deleteUser(id: string) {
+	try {
+		const result = await db.delete(users).where(eq(users.id, id)).returning();
+
+		return result[0];
+	} catch (error) {
 		throw error;
 	}
 }

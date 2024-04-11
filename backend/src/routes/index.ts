@@ -1,11 +1,22 @@
-import { Router } from 'express';
+import { Response, Router } from 'express';
 import sessionRoutes from './session.routes';
 import userRoutes from './user.routes';
 import groupRoutes from './group.routes';
 
 const router = Router();
 
-router.get('/healthcheck', (_, res) => {
+/*
+ * @openapi
+ * /healthcheck:
+ * get:
+ * 	tag:
+ * 		- Healthcheck
+ * 		description: Responds if the application is running
+ * 		responses:
+ * 			200:
+ * 				description: Application is running
+ */
+router.get('/healthcheck', (_, res: Response) => {
 	res.sendStatus(200);
 });
 
