@@ -22,6 +22,27 @@
       "when": 1712834803890,
       "tag": "0002_brown_bloodaxe",
       "breakpoints": false
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1712999283436,
+      "tag": "0003_brave_miss_america",
+      "breakpoints": false
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1712999287316,
+      "tag": "0004_organic_lucky_pierre",
+      "breakpoints": false
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1713001680100,
+      "tag": "0005_broad_proteus",
+      "breakpoints": false
     }
   ]
 }
