@@ -6,12 +6,20 @@ import argon2 from 'argon2';
 import { signJwt, verifyJwt } from '../utils/jwt';
 import { getUserById, removePrivateUserProps } from './user.services';
 import { env } from '../../config/env';
+import axios from 'axios';
+import { CookieOptions } from 'express';
 
-export const refreshCookieOptions = {
-	maxAge: 3.154e10, // 1 year
+export const accessCookieOptions: CookieOptions = {
+	maxAge: 3.154e10, // 5 seconds
 	httpOnly: true,
+	sameSite: 'lax',
 	domain: env.NODE_ENV === 'production' ? 'secregifter.io' : 'localhost',
 	secure: env.NODE_ENV === 'production',
+};
+
+export const refreshCookieOptions: CookieOptions = {
+	...accessCookieOptions,
+	maxAge: 3.154e10, // 1 year
 };
 
 export async function createSession(userId: string, userAgent?: string) {
@@ -129,6 +137,77 @@ export async function refreshAccessToken(refreshToken: string) {
 		return accessToken;
 	} catch (error) {
 		logger.error(error, 'Error refreshing access token');
+		throw error;
+	}
+}
+
+type GoogleOAuthResponse = {
+	id_token: string;
+	access_token: string;
+	refresh_token: string;
+	expires_in: number;
+	scope: string;
+};
+
+export async function getGoogleOAuthTokens(
+	code: string
+): Promise<GoogleOAuthResponse> {
+	const url = new URL('https://oauth2.googleapis.com/token');
+	url.searchParams.append('code', code);
+	url.searchParams.append('client_id', env.GOOGLE_OAUTH_CLIENT_ID);
+	url.searchParams.append('client_secret', env.GOOGLE_OAUTH_CLIENT_SECRET);
+	url.searchParams.append('redirect_uri', env.GOOGLE_OAUTH_REDIRECT_URI);
+	url.searchParams.append('grant_type', 'authorization_code');
+
+	try {
+		const response = await axios.post<GoogleOAuthResponse>(url.toString(), {
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+		});
+		return response.data;
+	} catch (error) {
+		logger.error(error, 'Error getting Google OAuth tokens');
+		throw error;
+	}
+}
+
+export type GoogleUser = {
+	iss: string;
+	azp: string;
+	aud: string;
+	sub: string;
+	at_hash: string;
+	email: string;
+	email_verified: boolean;
+	picture: string;
+	name: string;
+	given_name: string;
+	family_name: string;
+	locale: string;
+};
+
+export async function getGoogleUser({
+	idToken,
+	accessToken,
+}: {
+	idToken: string;
+	accessToken: string;
+}) {
+	const url = new URL('https://www.googleapis.com/oauth2/v3/userinfo');
+	url.searchParams.append('alt', 'json');
+	url.searchParams.append('access_token', accessToken);
+
+	try {
+		const response = await axios.get<GoogleUser>(url.toString(), {
+			headers: {
+				Authorization: `Bearer ${idToken}`,
+			},
+		});
+
+		return response.data;
+	} catch (error) {
+		logger.error(error, 'Error getting Google user');
 		throw error;
 	}
 }

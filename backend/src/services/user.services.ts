@@ -3,6 +3,8 @@ import { db } from '../db';
 import { NewUser, User, users } from '../db/schema';
 import argon2 from 'argon2';
 import { logger } from '../utils/logger';
+import { CreateUserBody } from '../schemas/user.schemas';
+import { GoogleUser } from './session.services';
 
 export async function createUser(data: NewUser) {
 	data.password = await hashPassword(data.password);
@@ -80,6 +82,30 @@ export async function deleteUser(id: string) {
 
 export async function hashPassword(password: string) {
 	return await argon2.hash(password);
+}
+
+export async function upsertUser(data: CreateUserBody, googleData: GoogleUser) {
+	try {
+		const user = db
+			.insert(users)
+			.values({
+				...data,
+			})
+			.onConflictDoUpdate({
+				target: users.email,
+				set: {
+					givenName: googleData.given_name,
+					familyName: googleData.family_name,
+					picture: googleData.picture,
+					updatedAt: new Date(),
+				},
+			})
+			.returning();
+
+		return user;
+	} catch (error) {
+		throw error;
+	}
 }
 
 export function removePrivateUserProps(user: User) {

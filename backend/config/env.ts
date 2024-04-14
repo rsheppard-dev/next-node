@@ -33,6 +33,10 @@ const schema = z.object({
 	MAIL_PORT: z.number(),
 	MAIL_USER: z.string(),
 	MAIL_PASSWORD: z.string(),
+
+	GOOGLE_OAUTH_CLIENT_ID: z.string(),
+	GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
+	GOOGLE_OAUTH_REDIRECT_URI: z.string(),
 });
 
 export const env = zennv({

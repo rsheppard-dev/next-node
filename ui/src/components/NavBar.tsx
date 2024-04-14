@@ -42,7 +42,7 @@ export default function NavBar() {
 					</NavigationMenuItem>
 					{isAuthenticated ? (
 						<NavigationMenuItem>
-							<Link href='/user' legacyBehavior passHref>
+							<Link href='/users' legacyBehavior passHref>
 								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
 									Profile
 								</NavigationMenuLink>

@@ -1,13 +1,18 @@
 import { Request, Response } from 'express';
 import { CreateSessionBody } from '../schemas/session.schemas';
 import {
+	createUser,
 	getUserByEmail,
 	removePrivateUserProps,
+	updateUser,
 } from '../services/user.services';
 import {
+	accessCookieOptions,
 	createSession,
+	getGoogleOAuthTokens,
 	getSessionById,
 	getUserSessions,
+	GoogleUser,
 	refreshAccessToken,
 	refreshCookieOptions,
 	updateSession,
@@ -16,6 +21,7 @@ import {
 import { signJwt } from '../utils/jwt';
 import { env } from '../../config/env';
 import { PublicUser } from '../db/schema';
+import jwt from 'jsonwebtoken';
 
 export async function createSessionHandler(
 	req: Request<{}, {}, CreateSessionBody>,
@@ -70,6 +76,7 @@ export async function createSessionHandler(
 			{ expiresIn: env.REFRESH_TOKEN_TTL }
 		);
 
+		res.cookie('accessToken', accessToken, accessCookieOptions);
 		res.cookie('refreshToken', refreshToken, refreshCookieOptions);
 
 		return res.status(201).send({ accessToken });
@@ -149,6 +156,7 @@ export async function deleteSessionHandler(
 
 		if (!cookies) return res.sendStatus(204);
 
+		res.clearCookie('accessToken', { ...accessCookieOptions, maxAge: -1 });
 		res.clearCookie('refreshToken', { ...refreshCookieOptions, maxAge: -1 });
 
 		return res.send({ ...result, message: 'Session invalidated' });
@@ -156,6 +164,86 @@ export async function deleteSessionHandler(
 		return res.status(500).send({
 			statusCode: 500,
 			message: 'Failed to delete session',
+			error,
+		});
+	}
+}
+
+export async function googleOAuthHandler(req: Request, res: Response) {
+	const code = req.query.code as string;
+	try {
+		const { id_token, access_token } = await getGoogleOAuthTokens(code);
+
+		const googleUser = jwt.decode(id_token) as GoogleUser;
+
+		// const googleUser = await getGoogleUser({
+		// 	idToken: id_token,
+		// 	accessToken: access_token,
+		// });
+
+		if (!googleUser)
+			return res.status(401).send({
+				statusCode: 401,
+				message: 'Failed to authenticate with Google',
+			});
+
+		if (!googleUser.email_verified)
+			return res.status(403).send({
+				statusCode: 403,
+				message: 'Google account has not been verified',
+			});
+
+		let user = await getUserByEmail(googleUser.email);
+
+		if (user) {
+			user.givenName = googleUser.given_name;
+			user.familyName = googleUser.family_name;
+			user.picture = googleUser.picture;
+			await updateUser(user);
+		} else {
+			user = await createUser({
+				email: googleUser.email,
+				givenName: googleUser.given_name,
+				familyName: googleUser.family_name,
+				picture: googleUser.picture,
+				isVerified: true,
+				password: '',
+			});
+		}
+
+		const session = await createSession(user.id, req.get('user-agent'));
+
+		// sign an access token and a refresh token
+		const accessToken = signJwt(
+			{
+				...removePrivateUserProps(user),
+				sessionId: session.id,
+			},
+			'access',
+			{
+				expiresIn: env.ACCESS_TOKEN_TTL,
+			}
+		);
+
+		const refreshToken = signJwt(
+			{
+				...removePrivateUserProps(user),
+				sessionId: session.id,
+			},
+			'refresh',
+			{ expiresIn: env.REFRESH_TOKEN_TTL }
+		);
+
+		console.log(googleUser);
+
+		res.cookie('accessToken', accessToken, accessCookieOptions);
+		res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
+		res.redirect(env.ORIGIN);
+	} catch (error) {
+		return res.status(401).send({
+			statusCode: 401,
+			message: 'Failed to authenticate with Google',
 			error,
 		});
 	}

@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSessionSelectors } from '@/stores/session.store';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import getGoogleOAuthUrl from '@/utils/getGoogleUrl';
 
 export default function WelcomeSection() {
 	const router = useRouter();
@@ -31,6 +32,10 @@ export default function WelcomeSection() {
 		router.push('/login');
 	}
 
+	function handleGoogleLogin() {
+		router.push(getGoogleOAuthUrl());
+	}
+
 	async function handleLogout() {
 		await logout();
 		router.push('/');
@@ -42,7 +47,7 @@ export default function WelcomeSection() {
 				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
 				<p className='text-xl text-muted-foreground'>You are now logged in.</p>
 				<div className='flex items-center gap-6'>
-					<Link href='/user'>
+					<Link href='/users'>
 						<Button variant={'secondary'}>View Profile</Button>
 					</Link>
 					<Button onClick={handleLogout}>Logout</Button>
@@ -52,10 +57,14 @@ export default function WelcomeSection() {
 
 	return (
 		<section className='flex flex-col gap-8'>
-			<h1 className='text-4xl font-bold'>ShadCn Practice</h1>
-			<p className='text-xl text-muted-foreground'>I am learning ShadCn!</p>
+			<h1 className='text-4xl font-bold'>Secret Gifter</h1>
+			<p className='text-xl text-muted-foreground'>
+				The ultimate way to organise secret gifting.
+			</p>
 			<div className='flex items-center gap-6'>
-				<Button variant={'secondary'}>Learn More</Button>
+				<Button variant={'secondary'} onClick={handleGoogleLogin}>
+					Login With Google
+				</Button>
 				<Button onClick={handleLogin}>Login</Button>
 			</div>
 		</section>

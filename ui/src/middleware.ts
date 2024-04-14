@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
 
 	// user is already authenticated but trying to access a public path
 	if (isPublicPath && refreshToken) {
-		return NextResponse.redirect(new URL('/user', request.nextUrl));
+		return NextResponse.redirect(new URL('/users', request.nextUrl));
 	}
 
 	// user is not authenticated and trying to access a protected path

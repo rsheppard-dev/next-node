@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { verifyJwt } from '../utils/jwt';
 import { PublicUser } from '../db/schema';
-import { refreshAccessToken } from '../services/session.services';
+import {
+	accessCookieOptions,
+	refreshAccessToken,
+} from '../services/session.services';
 import { logger } from '../utils/logger';
 
 export default async function deserialiseUser(
@@ -10,12 +13,11 @@ export default async function deserialiseUser(
 	next: NextFunction
 ) {
 	try {
-		const authHeader = (req.headers.authorization ||
+		const authHeader = (req.headers.Authorization ||
 			req.headers.Authorization) as string | undefined;
 
-		if (!authHeader?.startsWith('Bearer ')) return next();
-
-		const accessToken = authHeader.split('Bearer ')[1];
+		const accessToken =
+			authHeader?.split('Bearer ')[1] ?? req.cookies['accessToken'];
 
 		const refreshToken = req.cookies['refreshToken'] as string | undefined;
 
@@ -34,6 +36,7 @@ export default async function deserialiseUser(
 
 			if (newAccessToken) {
 				res.setHeader('Authorization', `Bearer ${newAccessToken}`);
+				res.cookie('accessToken', newAccessToken, accessCookieOptions);
 
 				const { data: newData } = verifyJwt<PublicUser>(
 					newAccessToken,
