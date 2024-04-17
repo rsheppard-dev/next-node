@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import { verifyUser } from '@/services/user.services';
 import StatusMessage from './StatusMessage';
 
-export default function VerifyPasswordResetForm() {
+export default function VerifyResetPasswordForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const searchParams = useSearchParams();

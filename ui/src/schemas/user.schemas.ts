@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const registrationInputSchema = z
+export const createUserInputSchema = z
 	.object({
 		givenName: z
 			.string()
@@ -23,7 +23,15 @@ export const forgotPasswordInputSchema = z.object({
 	email: z.string().email({ message: 'Invalid email address' }),
 });
 
-export const verifyInputSchema = z.object({
+export const verifyUserInputSchema = z.object({
+	id: z.string().uuid(),
+	code: z
+		.string()
+		.length(6, 'Code must be 6 digits long')
+		.regex(/^\d+$/, 'Code can only contain numbers'),
+});
+
+export const verifyResetPasswordCodeInputSchema = z.object({
 	email: z.string().email({ message: 'Invalid email address' }),
 	code: z
 		.string()
@@ -34,7 +42,7 @@ export const verifyInputSchema = z.object({
 export const resetPasswordInputSchema = z
 	.object({
 		email: z.string().email({ message: 'Invalid email address' }),
-		passwordResetCode: z
+		ResetPasswordCode: z
 			.string()
 			.length(6, 'Code must be 6 digits long')
 			.regex(/^\d+$/, 'Code can only contain numbers'),
@@ -46,7 +54,10 @@ export const resetPasswordInputSchema = z
 		path: ['confirmPassword'],
 	});
 
-export type RegistrationInput = z.infer<typeof registrationInputSchema>;
+export type CreateUserInput = z.infer<typeof createUserInputSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordInputSchema>;
-export type VerifyInput = z.infer<typeof verifyInputSchema>;
+export type VerifyUserInput = z.infer<typeof verifyUserInputSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
+export type VerifyResetPasswordCodeInput = z.infer<
+	typeof verifyResetPasswordCodeInputSchema
+>;

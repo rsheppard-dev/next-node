@@ -112,8 +112,8 @@ export function removePrivateUserProps(user: User) {
 	const {
 		password,
 		verificationCode,
-		passwordResetCode,
-		passwordResetExpiresAt,
+		ResetPasswordCode,
+		ResetPasswordExpiresAt,
 		...publicProps
 	} = user;
 

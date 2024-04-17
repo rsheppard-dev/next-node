@@ -1,16 +1,22 @@
 import { customAlphabet } from 'nanoid';
 import {
 	CreateUserBody,
+	DeleteUserBody,
 	ForgotPasswordBody,
 	GetUserParams,
 	ResetPasswordBody,
+	UpdateEmailBody,
+	UpdatePasswordBody,
+	UpdateProfileBody,
 	VerifyResetPasswordParams,
 	VerifyUserParams,
 } from '../schemas/user.schemas';
 import {
 	createUser,
+	deleteUser,
 	getUserByEmail,
 	getUserById,
+	getUsers,
 	removePrivateUserProps,
 	updateUser,
 } from '../services/user.services';
@@ -18,7 +24,9 @@ import { logger } from '../utils/logger';
 import sendEmail from '../utils/mailer';
 import { Request, Response } from 'express';
 import { env } from '../../config/env';
-import { PublicUser } from '../db/schema';
+import { PublicUser, User } from '../db/schema';
+
+const nanoid = customAlphabet('0123456789', 6);
 
 export async function createUserHandler(
 	req: Request<{}, {}, CreateUserBody>,
@@ -79,6 +87,19 @@ export async function getUserHandler(
 	}
 }
 
+export async function getUsersHandler(req: Request, res: Response) {
+	try {
+		const users = await getUsers();
+
+		return res.send(users.map(user => removePrivateUserProps(user)));
+	} catch (error) {
+		res.status(400).send({
+			statusCode: 400,
+			message: 'Failed to get users',
+		});
+	}
+}
+
 export async function verifyUserHandler(
 	req: Request<VerifyUserParams>,
 	res: Response
@@ -130,8 +151,6 @@ export async function forgotPasswordHandler(
 	try {
 		const { email } = req.body;
 
-		const nanoid = customAlphabet('0123456789', 6);
-
 		const message =
 			'If a user is registered with that email you will receive instructions to reset your password.';
 
@@ -152,11 +171,11 @@ export async function forgotPasswordHandler(
 			});
 		}
 
-		const passwordResetCode = nanoid();
-		const passwordResetExpires = new Date(Date.now() + 1000 * 60 * 60 * 8); // 8 hours
+		const ResetPasswordCode = nanoid();
+		const ResetPasswordExpires = new Date(Date.now() + 1000 * 60 * 60 * 8); // 8 hours
 
-		user.passwordResetCode = passwordResetCode;
-		user.passwordResetExpiresAt = passwordResetExpires;
+		user.ResetPasswordCode = ResetPasswordCode;
+		user.ResetPasswordExpiresAt = ResetPasswordExpires;
 
 		await updateUser(user);
 
@@ -164,7 +183,7 @@ export async function forgotPasswordHandler(
 			from: 'Secret Gifter <noreply@secretgifter.io>',
 			to: user.email,
 			subject: 'Password Reset',
-			text: `Click the link to reset your password: Token: ${passwordResetCode}`,
+			text: `Click the link to reset your password: Token: ${ResetPasswordCode}`,
 		});
 
 		logger.debug(`Password reset token sent to ${email}`);
@@ -184,7 +203,7 @@ export async function verifyResetPasswordHandler(
 	req: Request<VerifyResetPasswordParams>,
 	res: Response
 ) {
-	const { email, passwordResetCode } = req.params;
+	const { email, ResetPasswordCode } = req.params;
 	const message = 'Failed to verify user';
 
 	try {
@@ -192,8 +211,8 @@ export async function verifyResetPasswordHandler(
 
 		if (
 			!user ||
-			!user.passwordResetCode ||
-			user.passwordResetCode !== passwordResetCode
+			!user.ResetPasswordCode ||
+			user.ResetPasswordCode !== ResetPasswordCode
 		) {
 			return res.status(401).send({
 				statusCode: 401,
@@ -203,8 +222,8 @@ export async function verifyResetPasswordHandler(
 		}
 
 		if (
-			user.passwordResetExpiresAt &&
-			user.passwordResetExpiresAt < new Date()
+			user.ResetPasswordExpiresAt &&
+			user.ResetPasswordExpiresAt < new Date()
 		) {
 			return res.status(401).send({
 				statusCode: 401,
@@ -227,7 +246,7 @@ export async function resetPasswordHandler(
 	req: Request<{}, {}, ResetPasswordBody>,
 	res: Response
 ) {
-	const { password, passwordResetCode, email } = req.body;
+	const { password, ResetPasswordCode, email } = req.body;
 	const message = 'Failed to reset password';
 
 	try {
@@ -235,8 +254,8 @@ export async function resetPasswordHandler(
 
 		if (
 			!user ||
-			!user.passwordResetCode ||
-			user.passwordResetCode !== passwordResetCode
+			!user.ResetPasswordCode ||
+			user.ResetPasswordCode !== ResetPasswordCode
 		) {
 			return res.status(401).send({
 				statusCode: 401,
@@ -245,8 +264,8 @@ export async function resetPasswordHandler(
 		}
 
 		if (
-			user.passwordResetExpiresAt &&
-			user.passwordResetExpiresAt < new Date()
+			user.ResetPasswordExpiresAt &&
+			user.ResetPasswordExpiresAt < new Date()
 		) {
 			return res.status(401).send({
 				statusCode: 401,
@@ -254,8 +273,8 @@ export async function resetPasswordHandler(
 			});
 		}
 
-		user.passwordResetCode = null;
-		user.passwordResetExpiresAt = null;
+		user.ResetPasswordCode = null;
+		user.ResetPasswordExpiresAt = null;
 		user.password = password;
 
 		const updatedUser = await updateUser(user);
@@ -274,4 +293,151 @@ export async function getCurrentUserHandler(
 	res: Response<{}, { user: PublicUser }>
 ) {
 	return res.send(res.locals.user);
+}
+
+export async function updateProfileHandler(
+	req: Request<{}, {}, UpdateProfileBody>,
+	res: Response<{}, { user: User }>
+) {
+	// const { id } = res.locals.user;
+	const data = req.body;
+
+	try {
+		const user = await getUserById(data.id);
+
+		if (!user) {
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found',
+			});
+		}
+
+		const updatedUser = await updateUser(Object.assign(user, data));
+
+		return res.send({
+			statusCode: 200,
+			message: 'User profile updated',
+			data: removePrivateUserProps(updatedUser),
+		});
+	} catch (error) {
+		res.status(400).send({
+			statusCode: 400,
+			message: 'Failed to update user profile',
+		});
+	}
+}
+
+export async function updatePasswordHandler(
+	req: Request<{}, {}, UpdatePasswordBody>,
+	res: Response<{}, { user: User }>
+) {
+	const { id, password } = req.body;
+
+	try {
+		const user = await getUserById(id);
+
+		if (!user) {
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found',
+			});
+		}
+
+		user.password = password;
+
+		const updatedUser = await updateUser(user);
+
+		return res.send({
+			statusCode: 200,
+			message: 'User password updated',
+			data: removePrivateUserProps(updatedUser),
+		});
+	} catch (error) {
+		res.status(400).send({
+			statusCode: 400,
+			message: 'Failed to update user password',
+		});
+	}
+}
+
+export async function updateEmailHandler(
+	req: Request<{}, {}, UpdateEmailBody>,
+	res: Response<{}, { user: User }>
+) {
+	const { id, email } = req.body;
+
+	try {
+		const user = await getUserById(id);
+
+		if (!user) {
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found',
+			});
+		}
+
+		if (user.email === email) {
+			return res.status(409).send({
+				statusCode: 409,
+				message: 'New email cannot be the same as your current email',
+			});
+		}
+
+		user.email = email;
+		user.isVerified = false;
+		user.verificationCode = nanoid();
+
+		const updatedUser = await updateUser(user);
+
+		if (env.NODE_ENV !== 'test') {
+			await sendEmail({
+				from: 'Secret Gifter <noreply@secretgifter.io>',
+				to: updatedUser.email,
+				subject: 'Please verify your new email',
+				text: `Welcome to Secret Gifter! Please click the link to verify your change of email: Token: ${user.verificationCode} ID: ${user.id}`,
+			});
+		}
+
+		return res.send({
+			statusCode: 200,
+			message: 'User email updated',
+			data: removePrivateUserProps(updatedUser),
+		});
+	} catch (error) {
+		res.status(500).send({
+			statusCode: 500,
+			message: 'Failed to update email',
+		});
+	}
+}
+
+export async function deleteUserHandler(
+	req: Request<{}, {}, DeleteUserBody>,
+	res: Response<{}, { user: User }>
+) {
+	const { id } = req.body;
+
+	try {
+		const user = await getUserById(id);
+
+		if (!user) {
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found',
+			});
+		}
+
+		const deletedUser = await deleteUser(id);
+
+		return res.send({
+			statusCode: 200,
+			message: 'User deleted',
+			data: removePrivateUserProps(deletedUser),
+		});
+	} catch (error) {
+		res.status(500).send({
+			statusCode: 500,
+			message: 'Failed to delete user',
+		});
+	}
 }

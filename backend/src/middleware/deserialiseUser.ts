@@ -30,7 +30,7 @@ export default async function deserialiseUser(
 			return next();
 		}
 
-		if (isExpired && refreshToken) {
+		if (refreshToken && isExpired) {
 			logger.info('Access token expired, trying to refresh...');
 			const newAccessToken = await refreshAccessToken(refreshToken);
 

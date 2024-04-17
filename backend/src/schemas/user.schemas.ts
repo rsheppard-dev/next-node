@@ -56,7 +56,7 @@ export const verifyResetPasswordSchema = z.object({
 		email: z
 			.string({ required_error: 'Email is required' })
 			.email('Not a valid email'),
-		passwordResetCode: z
+		ResetPasswordCode: z
 			.string({
 				required_error: 'Password reset code is required',
 			})
@@ -71,7 +71,7 @@ export const resetPasswordSchema = z.object({
 			email: z
 				.string({ required_error: 'Email is required' })
 				.email('Not a valid email'),
-			passwordResetCode: z
+			ResetPasswordCode: z
 				.string({
 					required_error: 'Password reset code is required',
 				})
@@ -90,6 +90,54 @@ export const resetPasswordSchema = z.object({
 		}),
 });
 
+export const updateProfileSchema = z.object({
+	body: z.object({
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
+		givenName: z
+			.string()
+			.max(50, { message: 'First name must not exceed 50 characters' })
+			.optional(),
+		familyName: z
+			.string()
+			.max(50, { message: 'Last name must not exceed 50 characters' })
+			.optional(),
+		picture: z.string().optional(),
+		dob: z.date().optional(),
+	}),
+});
+
+export const updatePasswordSchema = z.object({
+	body: z
+		.object({
+			id: z.string({ required_error: 'User ID is required' }).uuid(),
+			password: z
+				.string({ required_error: 'Password is required' })
+				.min(8, 'Password must be at least 8 characters'),
+			confirmPassword: z.string({
+				required_error: 'Confirm password is required',
+			}),
+		})
+		.refine(data => data.password === data.confirmPassword, {
+			message: 'Passwords do not match',
+			path: ['confirmPassword'],
+		}),
+});
+
+export const updateEmailSchema = z.object({
+	body: z.object({
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
+		email: z
+			.string({ required_error: 'Email is required' })
+			.email('Not a valid email'),
+	}),
+});
+
+export const deleteUserSchema = z.object({
+	body: z.object({
+		id: z.string({ required_error: 'User ID is required' }).uuid(),
+	}),
+});
+
 export type CreateUserBody = z.infer<typeof createUserSchema>['body'];
 export type GetUserParams = z.infer<typeof getUserSchema>['params'];
 export type VerifyUserParams = z.infer<typeof verifyUserSchema>['params'];
@@ -98,3 +146,7 @@ export type VerifyResetPasswordParams = z.infer<
 	typeof verifyResetPasswordSchema
 >['params'];
 export type ResetPasswordBody = z.infer<typeof resetPasswordSchema>['body'];
+export type UpdateProfileBody = z.infer<typeof updateProfileSchema>['body'];
+export type UpdatePasswordBody = z.infer<typeof updatePasswordSchema>['body'];
+export type UpdateEmailBody = z.infer<typeof updateEmailSchema>['body'];
+export type DeleteUserBody = z.infer<typeof deleteUserSchema>['body'];

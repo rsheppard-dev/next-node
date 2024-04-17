@@ -20,6 +20,7 @@ export const axiosAuth = axios.create({
 
 axiosAuth.interceptors.request.use(config => {
 	const accessToken = useSessionStore.getState().accessToken;
+
 	config.headers.Authorization = `Bearer ${accessToken}`;
 	return config;
 });

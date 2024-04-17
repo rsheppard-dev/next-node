@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { CreateUserInput, createUserInputSchema } from '@/schemas/user.schemas';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -14,52 +15,50 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import StatusMessage from './StatusMessage';
-import { useSessionStore } from '@/stores/session.store';
+import { createUser } from '@/services/user.services';
+import {
+	CreateGroupInput,
+	createGroupInputSchema,
+} from '@/schemas/group.schemas';
+import { createGroup } from '@/services/group.services';
 
-export default function LoginForm() {
+export default function CreateGroupForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const { login } = useSessionStore();
 
 	const router = useRouter();
-	const searchParams = useSearchParams();
 
-	const message = searchParams.get('message');
-
-	const form = useForm<LoginInput>({
-		resolver: zodResolver(loginInputSchema),
+	const form = useForm<CreateGroupInput>({
+		resolver: zodResolver(createGroupInputSchema),
 		defaultValues: {
-			email: '',
-			password: '',
+			name: '',
+			description: '',
 		},
 	});
 
 	const { isSubmitting } = form.formState;
 
-	async function onSubmit(values: LoginInput) {
+	async function onSubmit(values: CreateGroupInput) {
 		setErrorMessage(null);
-		try {
-			await login(values);
 
-			const destination = searchParams.get('from') || '/';
-			router.push(destination);
-		} catch (error: any) {
-			setErrorMessage(
-				error?.response?.data?.message ?? 'An unknown error occurred'
-			);
-			console.error(error);
+		try {
+			const response = await createGroup(values);
+
+			if ('error' in response) {
+				throw response.error;
+			}
+
+			router.push('/groups');
+		} catch (e: any) {
+			setErrorMessage(e?.response?.data?.message ?? 'Something went wrong');
 		}
 	}
 	return (
 		<Form {...form}>
-			{message ? (
-				<StatusMessage title='Please Login' description={message} />
-			) : null}
 			{errorMessage ? (
 				<StatusMessage
 					variant='destructive'
-					title='Login Failed'
+					title='Failed to create group'
 					description={errorMessage}
 				/>
 			) : null}
@@ -69,12 +68,12 @@ export default function LoginForm() {
 			>
 				<FormField
 					control={form.control}
-					name='email'
+					name='name'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Email</FormLabel>
+							<FormLabel>Group Name</FormLabel>
 							<FormControl>
-								<Input type='email' {...field} />
+								<Input {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -82,19 +81,19 @@ export default function LoginForm() {
 				/>
 				<FormField
 					control={form.control}
-					name='password'
+					name='description'
 					render={({ field }) => (
 						<FormItem>
-							<FormLabel>Password</FormLabel>
+							<FormLabel>Description</FormLabel>
 							<FormControl>
-								<Input type='password' {...field} />
+								<Input {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
-				<Button type='submit' disabled={isSubmitting}>
-					Login
+				<Button disabled={isSubmitting} type='submit'>
+					Create
 				</Button>
 			</form>
 		</Form>

@@ -102,15 +102,17 @@ export async function refreshSessionHandler(req: Request, res: Response) {
 		const accessToken = await refreshAccessToken(refreshToken);
 
 		if (!accessToken)
-			return res.status(401).send({
-				statusCode: 401,
+			return res.status(403).send({
+				statusCode: 403,
 				message: 'Failed to refresh access token',
 			});
 
+		res.cookie('accessToken', accessToken, accessCookieOptions);
+
 		return res.send({ accessToken });
 	} catch (error) {
-		return res.status(500).send({
-			statusCode: 500,
+		return res.status(403).send({
+			statusCode: 403,
 			message: 'Failed to refresh access token',
 			error,
 		});
@@ -172,14 +174,9 @@ export async function deleteSessionHandler(
 export async function googleOAuthHandler(req: Request, res: Response) {
 	const code = req.query.code as string;
 	try {
-		const { id_token, access_token } = await getGoogleOAuthTokens(code);
+		const { id_token } = await getGoogleOAuthTokens(code);
 
 		const googleUser = jwt.decode(id_token) as GoogleUser;
-
-		// const googleUser = await getGoogleUser({
-		// 	idToken: id_token,
-		// 	accessToken: access_token,
-		// });
 
 		if (!googleUser)
 			return res.status(401).send({
@@ -233,8 +230,6 @@ export async function googleOAuthHandler(req: Request, res: Response) {
 			'refresh',
 			{ expiresIn: env.REFRESH_TOKEN_TTL }
 		);
-
-		console.log(googleUser);
 
 		res.cookie('accessToken', accessToken, accessCookieOptions);
 		res.cookie('refreshToken', refreshToken, refreshCookieOptions);

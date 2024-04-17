@@ -1,13 +1,14 @@
 import {
+	CreateUserInput,
 	ForgotPasswordInput,
-	RegistrationInput,
 	ResetPasswordInput,
-	VerifyInput,
+	VerifyResetPasswordCodeInput,
+	VerifyUserInput,
 } from '@/schemas/user.schemas';
 import { User } from '@/types/user';
-import axios from '@/utils/axios';
+import axios, { axiosAuth } from '@/utils/axios';
 
-export async function registerUser(values: RegistrationInput) {
+export async function createUser(values: CreateUserInput) {
 	try {
 		const response = await axios.post<User>('/api/users', values);
 
@@ -18,10 +19,10 @@ export async function registerUser(values: RegistrationInput) {
 	}
 }
 
-export async function verifyNewUser(values: VerifyInput) {
+export async function verifyUser(values: VerifyUserInput) {
 	try {
 		const response = await axios.get<{ message: string }>(
-			`/api/users/verify/${values.email}/${values.code}`
+			`/api/users/verify/${values.id}/${values.code}`
 		);
 
 		return response.data;
@@ -45,7 +46,9 @@ export async function forgotPassword(values: ForgotPasswordInput) {
 	}
 }
 
-export async function verifyUser(values: VerifyInput) {
+export async function verifyResetPasswordCode(
+	values: VerifyResetPasswordCodeInput
+) {
 	try {
 		const response = await axios.get<{ isValid: boolean; message: string }>(
 			`/api/users/forgot-password/verify/${encodeURIComponent(
@@ -70,6 +73,17 @@ export async function resetPassword(values: ResetPasswordInput) {
 		return response.data;
 	} catch (error) {
 		console.log('Failed to reset password', error);
+		throw error;
+	}
+}
+
+export async function getCurrentUser() {
+	try {
+		const response = await axiosAuth.get<User>('/api/users/me');
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to get current user', error);
 		throw error;
 	}
 }

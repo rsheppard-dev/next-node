@@ -2,10 +2,11 @@ import { Router } from 'express';
 import validateResource from '../middleware/validateResource';
 import {
 	createGroupHandler,
+	deleteGroupHandler,
 	getUsersGroupsHandler,
 } from '../controllers/group.controllers';
 import requireUser from '../middleware/requireUser';
-import { createGroupSchema } from '../schemas/group.schemas';
+import { createGroupSchema, deleteGroupSchema } from '../schemas/group.schemas';
 
 const router = Router();
 
@@ -17,5 +18,12 @@ router.post(
 );
 
 router.get('/', requireUser, getUsersGroupsHandler);
+
+router.delete(
+	'/',
+	requireUser,
+	validateResource(deleteGroupSchema),
+	deleteGroupHandler
+);
 
 export default router;

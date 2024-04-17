@@ -176,3 +176,19 @@ export async function updateGroupUserRole(
 		throw error;
 	}
 }
+
+export async function isUserGroupAdmin(userId: string, groupId: string) {
+	try {
+		const result = await db.query.usersToGroups.findFirst({
+			where: and(
+				eq(usersToGroups.userId, userId),
+				eq(usersToGroups.groupId, groupId),
+				eq(usersToGroups.role, 'admin')
+			),
+		});
+
+		return !!result;
+	} catch (error) {
+		throw error;
+	}
+}

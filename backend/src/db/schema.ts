@@ -40,8 +40,8 @@ export const users = pgTable(
 		verificationCode: varchar('verification_code', { length: 256 }).default(
 			nanoid()
 		),
-		passwordResetCode: varchar('password_reset_code', { length: 256 }),
-		passwordResetExpiresAt: timestamp('password_reset_expires_at'),
+		ResetPasswordCode: varchar('password_reset_code', { length: 256 }),
+		ResetPasswordExpiresAt: timestamp('password_reset_expires_at'),
 		createdAt: timestamp('created_at').notNull().defaultNow(),
 		updatedAt: timestamp('updated_at').notNull().defaultNow(),
 	},
@@ -70,8 +70,8 @@ export type PublicUser = Omit<
 	User,
 	| 'password'
 	| 'verificationCode'
-	| 'passwordResetCode'
-	| 'passwordResetExpiresAt'
+	| 'ResetPasswordCode'
+	| 'ResetPasswordExpiresAt'
 > & { sessionId: string };
 
 export const groups = pgTable('groups', {

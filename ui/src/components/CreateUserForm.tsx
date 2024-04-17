@@ -2,10 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-	RegistrationInput,
-	registrationInputSchema,
-} from '@/schemas/user.schemas';
+import { CreateUserInput, createUserInputSchema } from '@/schemas/user.schemas';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -18,17 +15,16 @@ import {
 	FormLabel,
 	FormMessage,
 } from '@/components/ui/form';
-import { isAxiosError } from 'axios';
-import { registerUser } from '@/services/user.services';
 import StatusMessage from './StatusMessage';
+import { createUser } from '@/services/user.services';
 
-export default function RegistrationForm() {
+export default function CreateUserForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
 
-	const form = useForm<RegistrationInput>({
-		resolver: zodResolver(registrationInputSchema),
+	const form = useForm<CreateUserInput>({
+		resolver: zodResolver(createUserInputSchema),
 		defaultValues: {
 			givenName: '',
 			familyName: '',
@@ -40,21 +36,19 @@ export default function RegistrationForm() {
 
 	const { isSubmitting } = form.formState;
 
-	async function onSubmit(values: RegistrationInput) {
+	async function onSubmit(values: CreateUserInput) {
 		setErrorMessage(null);
 
 		try {
-			const user = await registerUser(values);
+			const response = await createUser(values);
 
-			if (!user?.id) throw Error;
-
-			router.push(`/register/verify?id=${user.id}`);
-		} catch (error) {
-			if (isAxiosError(error)) {
-				setErrorMessage(error.response?.data?.message);
-			} else {
-				setErrorMessage('An unknown error occurred');
+			if ('error' in response) {
+				throw response.error;
 			}
+
+			router.push(`/register/verify?id=${response.id}`);
+		} catch (e: any) {
+			setErrorMessage(e?.response?.data?.message ?? 'Something went wrong');
 		}
 	}
 	return (

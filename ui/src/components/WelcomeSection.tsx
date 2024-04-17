@@ -1,18 +1,18 @@
 'use client';
 
 import { User } from '@/types/user';
-import fetcher from '@/utils/fetcher';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { useSessionSelectors } from '@/stores/session.store';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import getGoogleOAuthUrl from '@/utils/getGoogleUrl';
+import { useSessionStore } from '@/stores/session.store';
+import { getCurrentUser } from '@/services/user.services';
 
 export default function WelcomeSection() {
 	const router = useRouter();
-	const isAuthenticated = useSessionSelectors.use.isAuthenticated();
-	const logout = useSessionSelectors.use.logout();
+
+	const { logout, isAuthenticated } = useSessionStore();
 
 	const {
 		data: user,
@@ -21,11 +21,11 @@ export default function WelcomeSection() {
 		error,
 	} = useQuery<User>({
 		queryKey: ['currentUser'],
-		queryFn: () => fetcher<User>('/api/users/me'),
+		queryFn: getCurrentUser,
 		enabled: isAuthenticated,
 	});
 
-	if (isPending && isAuthenticated) return <p>Loading...</p>;
+	if (isPending) return <p>Loading...</p>;
 	if (isError) return <p>Error loading user data. {error.message}</p>;
 
 	function handleLogin() {
@@ -38,7 +38,6 @@ export default function WelcomeSection() {
 
 	async function handleLogout() {
 		await logout();
-		router.push('/');
 	}
 
 	if (isAuthenticated && user)

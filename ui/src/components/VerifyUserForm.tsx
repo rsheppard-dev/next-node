@@ -18,15 +18,15 @@ import {
 	InputOTPGroup,
 	InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { VerifyInput, verifyInputSchema } from '@/schemas/user.schemas';
+import { VerifyUserInput, verifyUserInputSchema } from '@/schemas/user.schemas';
 import { useSearchParams } from 'next/navigation';
 import Spinner from './Spinner';
-import { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
-import { verifyNewUser } from '@/services/user.services';
 import StatusMessage from './StatusMessage';
+import { isAxiosError } from 'axios';
+import { verifyUser } from '@/services/user.services';
 
-export default function VerifyRegistrationForm() {
+export default function VerifyUserForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const searchParams = useSearchParams();
@@ -35,8 +35,8 @@ export default function VerifyRegistrationForm() {
 	const id = searchParams.get('id') || '';
 	const code = searchParams.get('code') || '';
 
-	const form = useForm<VerifyInput>({
-		resolver: zodResolver(verifyInputSchema),
+	const form = useForm<VerifyUserInput>({
+		resolver: zodResolver(verifyUserInputSchema),
 		defaultValues: {
 			id,
 			code,
@@ -47,11 +47,11 @@ export default function VerifyRegistrationForm() {
 	const watchedCode = form.watch('code');
 
 	const onSubmit = useCallback(
-		async (values: VerifyInput) => {
+		async (values: VerifyUserInput) => {
 			setErrorMessage(null);
 			try {
-				await verifyNewUser(values);
-				const message = 'Your account has been verified.';
+				await verifyUser(values);
+				const message = 'Your email has been verified.';
 				router.push(`/login?message=${encodeURIComponent(message)}`);
 			} catch (error) {
 				if (isAxiosError(error)) {

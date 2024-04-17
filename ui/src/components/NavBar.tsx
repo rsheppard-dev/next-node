@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/utils/utils';
 import { ModeToggle } from './ui/mode-toggle';
 import {
 	NavigationMenu,
@@ -9,19 +9,18 @@ import {
 	NavigationMenuList,
 	navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
-import { useSessionSelectors } from '@/stores/session.store';
 import { Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useSessionStore } from '@/stores/session.store';
 
 export default function NavBar() {
 	const router = useRouter();
-	const isAuthenticated = useSessionSelectors.use.isAuthenticated();
-	const logout = useSessionSelectors.use.logout();
+	const { logout, isAuthenticated } = useSessionStore();
 
 	async function handleLogout() {
 		await logout();
-		router.push('/');
+		router.push('/login');
 	}
 
 	return (
@@ -42,9 +41,9 @@ export default function NavBar() {
 					</NavigationMenuItem>
 					{isAuthenticated ? (
 						<NavigationMenuItem>
-							<Link href='/users' legacyBehavior passHref>
+							<Link href='/groups' legacyBehavior passHref>
 								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-									Profile
+									Groups
 								</NavigationMenuLink>
 							</Link>
 						</NavigationMenuItem>

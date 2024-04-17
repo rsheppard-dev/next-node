@@ -1,9 +1,9 @@
-import VerifyRegistrationForm from '@/components/VerifyRegistrationForm';
+import VerifyUserForm from '@/components/VerifyUserForm';
 
-export default function verifyRegistrationPage() {
+export default function verifyUserPage() {
 	return (
 		<section>
-			<VerifyRegistrationForm />
+			<VerifyUserForm />
 		</section>
 	);
 }

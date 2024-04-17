@@ -29,13 +29,13 @@ export default function ResetPasswordForm() {
 	const searchParams = useSearchParams();
 
 	const email = searchParams.get('email') || '';
-	const passwordResetCode = searchParams.get('code') || '';
+	const ResetPasswordCode = searchParams.get('code') || '';
 
 	const form = useForm<ResetPasswordInput>({
 		resolver: zodResolver(resetPasswordInputSchema),
 		defaultValues: {
 			email,
-			passwordResetCode,
+			ResetPasswordCode,
 			password: '',
 			confirmPassword: '',
 		},
@@ -74,8 +74,8 @@ export default function ResetPasswordForm() {
 				<input type='hidden' {...form.register('email')} value={email} />
 				<input
 					type='hidden'
-					{...form.register('passwordResetCode')}
-					value={passwordResetCode}
+					{...form.register('ResetPasswordCode')}
+					value={ResetPasswordCode}
 				/>
 				<FormField
 					control={form.control}

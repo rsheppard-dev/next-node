@@ -1,9 +1,9 @@
-import VerifyPasswordResetForm from '@/components/VerifyPasswordResetForm';
+import VerifyResetPasswordForm from '@/components/VerifyResetPasswordForm';
 
-export default function verifyPasswordResetPage() {
+export default function verifyResetPasswordPage() {
 	return (
 		<section>
-			<VerifyPasswordResetForm />
+			<VerifyResetPasswordForm />
 		</section>
 	);
 }

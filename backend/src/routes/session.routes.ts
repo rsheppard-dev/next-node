@@ -9,10 +9,16 @@ import {
 	refreshSessionHandler,
 } from '../controllers/session.controllers';
 import requireUser from '../middleware/requireUser';
+import loginLimiter from '../middleware/loginLimiter';
 
 const router = Router();
 
-router.post('/', validateResource(createSessionSchema), createSessionHandler);
+router.post(
+	'/',
+	loginLimiter,
+	validateResource(createSessionSchema),
+	createSessionHandler
+);
 router.get('/', getUserSessionsHandler);
 router.get('/refresh', refreshSessionHandler);
 router.delete('/', requireUser, deleteSessionHandler);

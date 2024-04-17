@@ -1,7 +1,6 @@
 import LoginForm from '@/components/LoginForm';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import React from 'react';
 
 export default function loginPage() {
 	return (

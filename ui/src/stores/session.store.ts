@@ -15,6 +15,7 @@ export type SessionState = {
 export type SessionActions = {
 	login: (values: LoginInput) => Promise<void>;
 	logout: () => Promise<void>;
+	setAccessToken: (accessToken: string) => void;
 };
 
 export type SessionStore = SessionState & SessionActions;
@@ -29,6 +30,9 @@ export const useSessionStore = create<SessionStore>()(
 	persist(
 		set => ({
 			...initialState,
+			setAccessToken: accessToken => {
+				set({ accessToken });
+			},
 			login: async (values: LoginInput): Promise<void> => {
 				try {
 					const {
