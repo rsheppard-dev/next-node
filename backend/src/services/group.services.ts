@@ -22,14 +22,26 @@ export async function createGroup(data: CreateGroupBody, userId: string) {
 	}
 }
 
-export async function getGroupById(groupId: string) {
+export async function getGroupById(groupId: string, userId: string) {
 	try {
-		const result = await db.query.groups.findFirst({
-			where: group => eq(group.id, groupId),
+		const result = await db.query.usersToGroups.findFirst({
+			where: and(
+				eq(usersToGroups.groupId, groupId),
+				eq(usersToGroups.userId, userId)
+			),
+			with: {
+				groups: true,
+			},
+			columns: {
+				role: true,
+			},
 		});
 
-		return result;
+		if (!result) return;
+
+		return { ...result.groups, role: result.role };
 	} catch (error) {
+		console.log(error);
 		throw error;
 	}
 }
@@ -41,10 +53,12 @@ export async function getUsersGroups(userId: string) {
 			with: {
 				groups: true,
 			},
-			columns: {},
+			columns: {
+				role: true,
+			},
 		});
 
-		return results.map(ug => ug.groups);
+		return results.map(ug => ({ ...ug.groups, role: ug.role }));
 	} catch (error) {
 		throw error;
 	}
@@ -127,6 +141,21 @@ export async function getGroupUsers(groupId: string) {
 		});
 
 		return results.map(ug => ug.users);
+	} catch (error) {
+		throw error;
+	}
+}
+
+export async function isUserInGroup(userId: string, groupId: string) {
+	try {
+		const result = await db.query.usersToGroups.findFirst({
+			where: and(
+				eq(usersToGroups.userId, userId),
+				eq(usersToGroups.groupId, groupId)
+			),
+		});
+
+		return !!result;
 	} catch (error) {
 		throw error;
 	}

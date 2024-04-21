@@ -25,7 +25,7 @@ export default function WelcomeSection() {
 		enabled: isAuthenticated,
 	});
 
-	if (isPending) return <p>Loading...</p>;
+	if (isPending && isAuthenticated) return <p>Loading...</p>;
 	if (isError) return <p>Error loading user data. {error.message}</p>;
 
 	function handleLogin() {

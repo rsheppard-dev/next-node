@@ -5,6 +5,7 @@ import { Delete, Edit } from 'lucide-react';
 import { Button } from './ui/button';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { deleteGroup } from '@/services/group.services';
+import Link from 'next/link';
 
 type Props = {
 	group: Group;
@@ -13,7 +14,7 @@ type Props = {
 export default function GroupTableRow({ group }: Props) {
 	const queryClient = useQueryClient();
 
-	const mutation = useMutation({
+	const deleteMutation = useMutation({
 		mutationFn: (id: string) => deleteGroup(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['groups'] });
@@ -24,14 +25,20 @@ export default function GroupTableRow({ group }: Props) {
 			<TableCell className='font-medium'>{group.name}</TableCell>
 			<TableCell>{group.description}</TableCell>
 			<TableCell className='flex justify-end items-center gap-2'>
-				<Edit />
-				<Button
-					variant='ghost'
-					title='Delete Group'
-					onClick={() => mutation.mutate(group.id)}
-				>
-					<Delete aria-hidden />
-				</Button>
+				{group.role === 'admin' ? (
+					<>
+						<Link href={`/groups/edit?id=${group.id}`} title='Edit Group'>
+							<Edit aria-hidden />
+						</Link>
+						<Button
+							variant='ghost'
+							title='Delete Group'
+							onClick={() => deleteMutation.mutate(group.id)}
+						>
+							<Delete aria-hidden />
+						</Button>
+					</>
+				) : null}
 			</TableCell>
 		</TableRow>
 	);

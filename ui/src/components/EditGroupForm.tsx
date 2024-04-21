@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -15,33 +15,56 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import StatusMessage from './StatusMessage';
-import { createUser } from '@/services/user.services';
 import {
-	CreateGroupInput,
-	createGroupInputSchema,
+	UpdateGroupInput,
+	updateGroupInputSchema,
 } from '@/schemas/group.schemas';
-import { createGroup } from '@/services/group.services';
+import { updateGroup, getGroup } from '@/services/group.services';
+import { useQuery } from '@tanstack/react-query';
+import { Group } from '@/types/group';
 
-export default function CreateGroupForm() {
+export default function EditGroupForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const id = searchParams.get('id');
 
-	const form = useForm<CreateGroupInput>({
-		resolver: zodResolver(createGroupInputSchema),
+	const {
+		data: group,
+		isPending,
+		isError,
+		error,
+	} = useQuery<Group>({
+		queryKey: ['group', id],
+		queryFn: () => getGroup(id!),
+		enabled: id !== null,
+	});
+
+	const form = useForm<UpdateGroupInput>({
+		resolver: zodResolver(updateGroupInputSchema),
 		defaultValues: {
-			name: '',
-			description: '',
+			id: group?.id,
+			name: group?.name,
+			description: group?.description,
 		},
 	});
 
+	useEffect(() => {
+		form.reset({
+			id: group?.id,
+			name: group?.name,
+			description: group?.description,
+		});
+	}, [group, form]);
+
 	const { isSubmitting } = form.formState;
 
-	async function onSubmit(values: CreateGroupInput) {
+	async function onSubmit(values: UpdateGroupInput) {
 		setErrorMessage(null);
 
 		try {
-			const response = await createGroup(values);
+			const response = await updateGroup(values);
 
 			if ('error' in response) {
 				throw response.error;
@@ -57,7 +80,7 @@ export default function CreateGroupForm() {
 			{errorMessage ? (
 				<StatusMessage
 					variant='destructive'
-					title='Failed to create group'
+					title='Failed to update group'
 					description={errorMessage}
 				/>
 			) : null}
@@ -65,6 +88,7 @@ export default function CreateGroupForm() {
 				onSubmit={form.handleSubmit(onSubmit)}
 				className='max-w-md space-y-4'
 			>
+				<Input type='hidden' {...form.register('id')} />
 				<FormField
 					control={form.control}
 					name='name'
@@ -78,6 +102,7 @@ export default function CreateGroupForm() {
 						</FormItem>
 					)}
 				/>
+
 				<FormField
 					control={form.control}
 					name='description'
@@ -92,7 +117,7 @@ export default function CreateGroupForm() {
 					)}
 				/>
 				<Button disabled={isSubmitting} type='submit'>
-					Create
+					Update
 				</Button>
 			</form>
 		</Form>

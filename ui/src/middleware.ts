@@ -6,7 +6,7 @@ const publicPaths = [
 	/^\/register(\/.*)?$/,
 	/^\/forgot-password(\/.*)?$/,
 ];
-const protectedPaths = [/^\/user(\/.*)?$/];
+const protectedPaths = [/^\/users(\/.*)?$/, /^\/groups(\/.*)?$/];
 
 export function middleware(request: NextRequest) {
 	const path = request.nextUrl.pathname;

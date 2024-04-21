@@ -1,4 +1,4 @@
-import { CreateGroupInput } from '@/schemas/group.schemas';
+import { CreateGroupInput, UpdateGroupInput } from '@/schemas/group.schemas';
 import { Group } from '@/types/group';
 import { axiosAuth } from '@/utils/axios';
 
@@ -20,6 +20,28 @@ export async function getGroups() {
 		return response.data;
 	} catch (error) {
 		console.log('Failed to get groups', error);
+		throw error;
+	}
+}
+
+export async function getGroup(id: string) {
+	try {
+		const response = await axiosAuth.get<Group>(`/api/groups/${id}`);
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to get group', error);
+		throw error;
+	}
+}
+
+export async function updateGroup(values: UpdateGroupInput) {
+	try {
+		const response = await axiosAuth.patch<Group>('/api/groups', values);
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to update group', error);
 		throw error;
 	}
 }
