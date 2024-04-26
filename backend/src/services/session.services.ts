@@ -10,10 +10,10 @@ import axios from 'axios';
 import { CookieOptions } from 'express';
 
 export const accessCookieOptions: CookieOptions = {
-	maxAge: 1000 * 60 * 20, // 20 minutes
+	maxAge: 1000 * 60 * 15, // 15 minutes
 	httpOnly: true,
 	sameSite: 'lax',
-	domain: env.NODE_ENV === 'production' ? 'secregifter.io' : 'localhost',
+	domain: env.NODE_ENV === 'production' ? 'secretgifter.io' : 'localhost',
 	secure: env.NODE_ENV === 'production',
 };
 

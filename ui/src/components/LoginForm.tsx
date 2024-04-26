@@ -16,14 +16,15 @@ import {
 } from '@/components/ui/form';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import StatusMessage from './StatusMessage';
-import { useSessionStore } from '@/stores/session.store';
+import { login } from '@/services/auth.services';
+import { useSessionStore } from '@/app/store/session.store';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const { login } = useSessionStore();
 
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const loginState = useSessionStore(state => state.login);
 
 	const message = searchParams.get('message');
 
@@ -41,6 +42,7 @@ export default function LoginForm() {
 		setErrorMessage(null);
 		try {
 			await login(values);
+			loginState();
 
 			const destination = searchParams.get('from') || '/';
 			router.push(destination);

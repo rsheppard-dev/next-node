@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { updateSession } from './services/session.services';
 
 const publicPaths = [
 	/^\/login$/,
@@ -8,19 +9,20 @@ const publicPaths = [
 ];
 const protectedPaths = [/^\/users(\/.*)?$/, /^\/groups(\/.*)?$/];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
 	const path = request.nextUrl.pathname;
 	const isPublicPath = publicPaths.some(pattern => pattern.test(path));
 	const isProtectedPath = protectedPaths.some(pattern => pattern.test(path));
-	const refreshToken = request.cookies.get('refreshToken')?.value;
+
+	const isLoggedIn = await updateSession();
 
 	// user is already authenticated but trying to access a public path
-	if (isPublicPath && refreshToken) {
+	if (isPublicPath && isLoggedIn) {
 		return NextResponse.redirect(new URL('/users', request.nextUrl));
 	}
 
 	// user is not authenticated and trying to access a protected path
-	if (isProtectedPath && !refreshToken) {
+	if (isProtectedPath && !isLoggedIn) {
 		return NextResponse.redirect(
 			new URL(`/login?from=${encodeURIComponent(path)}`, request.nextUrl)
 		);

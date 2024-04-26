@@ -22,7 +22,7 @@ export async function createGroup(data: CreateGroupBody, userId: string) {
 	}
 }
 
-export async function getGroupById(groupId: string, userId: string) {
+export async function getGroupWithUserRole(groupId: string, userId: string) {
 	try {
 		const result = await db.query.usersToGroups.findFirst({
 			where: and(
@@ -39,7 +39,9 @@ export async function getGroupById(groupId: string, userId: string) {
 
 		if (!result) return;
 
-		return { ...result.groups, role: result.role };
+		const members = await getGroupUsers(groupId);
+
+		return { ...result.groups, role: result.role, members };
 	} catch (error) {
 		console.log(error);
 		throw error;
@@ -134,13 +136,23 @@ export async function getGroupUsers(groupId: string) {
 	try {
 		const results = await db.query.usersToGroups.findMany({
 			where: eq(usersToGroups.groupId, groupId),
-			columns: {},
+			columns: {
+				role: true,
+			},
 			with: {
-				users: true,
+				users: {
+					columns: {
+						id: true,
+						givenName: true,
+						familyName: true,
+						email: true,
+						picture: true,
+					},
+				},
 			},
 		});
 
-		return results.map(ug => ug.users);
+		return results.map(ug => ({ ...ug.users, role: ug.role }));
 	} catch (error) {
 		throw error;
 	}

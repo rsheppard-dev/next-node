@@ -12,11 +12,8 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import GroupTableRow from './GroupTableRow';
-import { useSessionStore } from '@/stores/session.store';
 
 export default function GroupsTable() {
-	const { user } = useSessionStore();
-
 	const {
 		data: groups,
 		isPending,
@@ -32,7 +29,7 @@ export default function GroupsTable() {
 
 	return (
 		<Table>
-			<TableCaption>A list of {user?.givenName}&apos;s groups.</TableCaption>
+			<TableCaption>A list of groups.</TableCaption>
 			<TableHeader>
 				<TableRow>
 					<TableHead className='w-[100px]'>Name</TableHead>

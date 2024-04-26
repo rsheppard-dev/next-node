@@ -3,7 +3,7 @@ import { Group, PublicUser, User } from '../db/schema';
 import {
 	createGroup,
 	deleteGroup,
-	getGroupById,
+	getGroupWithUserRole,
 	getUsersGroups,
 	isUserGroupAdmin,
 	updateGroup,
@@ -59,7 +59,7 @@ export async function getGroupHandler(
 	const { id: userId } = res.locals.user;
 
 	try {
-		const group = await getGroupById(id, userId);
+		const group = await getGroupWithUserRole(id, userId);
 
 		if (!group) {
 			return res.status(404).send({
@@ -85,7 +85,7 @@ export async function updateGroupHandler(
 		const { id } = req.body;
 		const { id: userId } = res.locals.user;
 
-		const group = await getGroupById(id, userId);
+		const group = await getGroupWithUserRole(id, userId);
 
 		if (!group) {
 			return res.status(404).send({
@@ -123,7 +123,7 @@ export async function deleteGroupHandler(
 		const { id } = req.body;
 		const { id: userId } = res.locals.user;
 
-		const group = getGroupById(id, userId);
+		const group = getGroupWithUserRole(id, userId);
 
 		if (!group) {
 			return res.status(404).send({

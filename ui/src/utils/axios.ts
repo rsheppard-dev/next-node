@@ -1,8 +1,7 @@
 import axios from 'axios';
 import { env } from '../../config/env';
-import { useSessionStore } from '@/stores/session.store';
 
-const sharedOptions = {
+const options = {
 	baseURL: env.NEXT_PUBLIC_SERVER_ENDPOINT,
 	withCredentials: true,
 	headers: {
@@ -11,16 +10,5 @@ const sharedOptions = {
 };
 
 export default axios.create({
-	...sharedOptions,
-});
-
-export const axiosAuth = axios.create({
-	...sharedOptions,
-});
-
-axiosAuth.interceptors.request.use(config => {
-	const accessToken = useSessionStore.getState().accessToken;
-
-	config.headers.Authorization = `Bearer ${accessToken}`;
-	return config;
+	...options,
 });

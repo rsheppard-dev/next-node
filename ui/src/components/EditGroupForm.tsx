@@ -30,14 +30,9 @@ export default function EditGroupForm() {
 	const searchParams = useSearchParams();
 	const id = searchParams.get('id');
 
-	const {
-		data: group,
-		isPending,
-		isError,
-		error,
-	} = useQuery<Group>({
+	const { data: group } = useQuery<Group>({
 		queryKey: ['group', id],
-		queryFn: () => getGroup(id!),
+		queryFn: () => getGroup(id as string),
 		enabled: id !== null,
 	});
 

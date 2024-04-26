@@ -6,7 +6,7 @@ import {
 	VerifyUserInput,
 } from '@/schemas/user.schemas';
 import { User } from '@/types/user';
-import axios, { axiosAuth } from '@/utils/axios';
+import axios from '@/utils/axios';
 
 export async function createUser(values: CreateUserInput) {
 	try {
@@ -79,7 +79,7 @@ export async function resetPassword(values: ResetPasswordInput) {
 
 export async function getCurrentUser() {
 	try {
-		const response = await axiosAuth.get<User>('/api/users/me');
+		const response = await axios.get<User>('/api/users/me');
 
 		return response.data;
 	} catch (error) {

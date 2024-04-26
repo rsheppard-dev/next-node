@@ -14,7 +14,7 @@ export default async function deserialiseUser(
 ) {
 	try {
 		const authHeader = (req.headers.Authorization ||
-			req.headers.Authorization) as string | undefined;
+			req.headers.authorization) as string | undefined;
 
 		const accessToken =
 			authHeader?.split('Bearer ')[1] ?? req.cookies['accessToken'];

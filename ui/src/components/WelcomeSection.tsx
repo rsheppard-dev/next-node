@@ -6,13 +6,14 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import getGoogleOAuthUrl from '@/utils/getGoogleUrl';
-import { useSessionStore } from '@/stores/session.store';
 import { getCurrentUser } from '@/services/user.services';
+import { logout } from '@/services/auth.services';
+import { useSessionStore } from '@/app/store/session.store';
 
 export default function WelcomeSection() {
 	const router = useRouter();
-
-	const { logout, isAuthenticated } = useSessionStore();
+	const logoutState = useSessionStore(state => state.logout);
+	const isAuthenticated = useSessionStore(state => state.isAuthenticated);
 
 	const {
 		data: user,
@@ -38,9 +39,10 @@ export default function WelcomeSection() {
 
 	async function handleLogout() {
 		await logout();
+		logoutState();
 	}
 
-	if (isAuthenticated && user)
+	if (isAuthenticated)
 		return (
 			<section className='flex flex-col gap-8'>
 				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
