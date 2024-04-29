@@ -12,17 +12,14 @@ import {
 import { Gift } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { logout } from '@/services/auth.services';
-import { useSessionStore } from '@/app/store/session.store';
+import { useSessionStore } from '@/store/session.store';
 
 export default function NavBar() {
 	const router = useRouter();
-	const logoutState = useSessionStore(state => state.logout);
-	const isAuthenticated = useSessionStore(state => state.isAuthenticated);
+	const { isAuthenticated, logout } = useSessionStore(state => state);
 
 	async function handleLogout() {
 		await logout();
-		logoutState();
 
 		router.push('/login');
 	}

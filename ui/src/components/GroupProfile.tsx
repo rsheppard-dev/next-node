@@ -5,6 +5,7 @@ import { Group } from '@/types/group';
 import { useQuery } from '@tanstack/react-query';
 import { notFound } from 'next/navigation';
 import { Badge } from './ui/badge';
+import GroupMemberTable from './GroupMemberTable';
 
 type Props = {
 	id: string;
@@ -19,9 +20,6 @@ export default function GroupProfile({ id }: Props) {
 	if (isPending) return <div>Loading group profile...</div>;
 
 	if (!group) return notFound();
-
-	console.log(group);
-
 	return (
 		<section className='space-y-6'>
 			<div className='flex items-center gap-2'>
@@ -29,6 +27,8 @@ export default function GroupProfile({ id }: Props) {
 				<Badge variant='outline'>{group.role}</Badge>
 			</div>
 			{!!group?.description && <p>{group.description}</p>}
+
+			<GroupMemberTable members={group.members} groupRole={group.role} />
 		</section>
 	);
 }

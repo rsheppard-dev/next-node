@@ -14,7 +14,22 @@ export async function middleware(request: NextRequest) {
 	const isPublicPath = publicPaths.some(pattern => pattern.test(path));
 	const isProtectedPath = protectedPaths.some(pattern => pattern.test(path));
 
-	const isLoggedIn = await updateSession();
+	const newToken = await updateSession();
+
+	const response = NextResponse.next();
+
+	if (newToken) {
+		response.cookies.set({
+			name: 'accessToken',
+			value: newToken,
+			httpOnly: true,
+			secure: true,
+			sameSite: 'lax',
+			maxAge: 1000 * 60 * 15,
+		});
+	}
+
+	const isLoggedIn = !!request.cookies.get('accessToken')?.value;
 
 	// user is already authenticated but trying to access a public path
 	if (isPublicPath && isLoggedIn) {
@@ -27,6 +42,8 @@ export async function middleware(request: NextRequest) {
 			new URL(`/login?from=${encodeURIComponent(path)}`, request.nextUrl)
 		);
 	}
+
+	return response;
 }
 
 export const config = {

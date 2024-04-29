@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
-import { CreateSessionBody } from '../schemas/session.schemas';
+import {
+	CreateSessionBody,
+	RefreshSessionBody,
+} from '../schemas/session.schemas';
 import {
 	createUser,
 	getUserByEmail,
@@ -89,9 +92,12 @@ export async function createSessionHandler(
 	}
 }
 
-export async function refreshSessionHandler(req: Request, res: Response) {
+export async function refreshSessionHandler(
+	req: Request<{}, {}, RefreshSessionBody>,
+	res: Response
+) {
 	try {
-		const refreshToken = req.cookies['refreshToken'];
+		const { refreshToken } = req.body;
 
 		if (!refreshToken)
 			return res.status(401).send({
@@ -106,8 +112,6 @@ export async function refreshSessionHandler(req: Request, res: Response) {
 				statusCode: 403,
 				message: 'Failed to refresh access token',
 			});
-
-		res.cookie('accessToken', accessToken, accessCookieOptions);
 
 		return res.send({ accessToken });
 	} catch (error) {

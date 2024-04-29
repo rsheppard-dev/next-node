@@ -1,11 +1,11 @@
-import { User } from './user';
+import { GroupMember } from './groupMember';
 
 export type Group = {
 	id: string;
 	name: string;
 	description?: string;
 	role: 'member' | 'admin';
-	members: User[];
+	members: GroupMember[];
 	createdAt: string;
 	updatedAt: string;
 	iat: number;

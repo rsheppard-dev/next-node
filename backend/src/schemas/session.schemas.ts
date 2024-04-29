@@ -1,4 +1,3 @@
-import { access } from 'fs';
 import { z } from 'zod';
 
 export const createSessionSchema = z.object({
@@ -12,4 +11,11 @@ export const createSessionSchema = z.object({
 	}),
 });
 
+export const refreshSessionSchema = z.object({
+	body: z.object({
+		refreshToken: z.string({ required_error: 'Refresh token is required' }),
+	}),
+});
+
 export type CreateSessionBody = z.infer<typeof createSessionSchema>['body'];
+export type RefreshSessionBody = z.infer<typeof refreshSessionSchema>['body'];

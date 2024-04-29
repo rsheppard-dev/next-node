@@ -1,9 +1,9 @@
-import axios from '@/utils/axios';
 import { cookies } from 'next/headers';
 import { jwtDecode } from 'jwt-decode';
 import { User } from '@/types/user';
+import { env } from '../../config/env';
 
-export async function getSession() {
+export function getSession() {
 	const accessToken = cookies().get('accessToken')?.value;
 
 	if (!accessToken) return null;
@@ -13,26 +13,37 @@ export async function getSession() {
 
 export async function updateSession() {
 	const accessToken = cookies().get('accessToken')?.value;
+
 	try {
-		if (accessToken) return true;
-
-		const newAccessToken = await refreshSession();
-
-		return !!newAccessToken;
+		if (!accessToken) {
+			return await refreshSession();
+		}
 	} catch (error) {
 		console.log(error);
-		return false;
+		throw error;
 	}
 }
 
-export async function refreshSession() {
+export async function refreshSession(): Promise<string | undefined> {
+	const refreshToken = cookies().get('refreshToken')?.value;
+
 	try {
-		const response = await axios.get<{ accessToken: string }>(
-			'/api/sessions/refresh'
+		const response = await fetch(
+			`${env.NEXT_PUBLIC_SERVER_ENDPOINT}/api/sessions/refresh`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ refreshToken }),
+			}
 		);
 
-		return response.data.accessToken;
+		const { accessToken } = await response.json();
+
+		return accessToken;
 	} catch (error) {
-		return null;
+		console.log('Error refreshing token', error);
+		throw error;
 	}
 }

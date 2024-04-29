@@ -1,33 +1,14 @@
 'use client';
 
-import { User } from '@/types/user';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import getGoogleOAuthUrl from '@/utils/getGoogleUrl';
-import { getCurrentUser } from '@/services/user.services';
-import { logout } from '@/services/auth.services';
-import { useSessionStore } from '@/app/store/session.store';
+import { useSessionStore } from '@/store/session.store';
 
 export default function WelcomeSection() {
 	const router = useRouter();
-	const logoutState = useSessionStore(state => state.logout);
-	const isAuthenticated = useSessionStore(state => state.isAuthenticated);
-
-	const {
-		data: user,
-		isPending,
-		isError,
-		error,
-	} = useQuery<User>({
-		queryKey: ['currentUser'],
-		queryFn: getCurrentUser,
-		enabled: isAuthenticated,
-	});
-
-	if (isPending && isAuthenticated) return <p>Loading...</p>;
-	if (isError) return <p>Error loading user data. {error.message}</p>;
+	const { isAuthenticated, user, logout } = useSessionStore(state => state);
 
 	function handleLogin() {
 		router.push('/login');
@@ -39,7 +20,6 @@ export default function WelcomeSection() {
 
 	async function handleLogout() {
 		await logout();
-		logoutState();
 	}
 
 	if (isAuthenticated)
