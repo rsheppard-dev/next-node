@@ -4,7 +4,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { TableCell, TableRow } from './ui/table';
 import { GroupMember } from '@/types/groupMember';
-import { CircleUserRound, Delete, Edit, Info, UserRound } from 'lucide-react';
+import { Delete, Edit, Info, UserRound } from 'lucide-react';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,12 +23,11 @@ type Props = {
 };
 
 export default function GroupMemberTableRow({ member, groupRole }: Props) {
-	console.log(member.picture);
 	return (
 		<TableRow>
 			<TableCell className='flex items-center gap-2'>
 				<Avatar>
-					<AvatarImage src={member.picture} />
+					<AvatarImage src={member?.picture} />
 					<AvatarFallback>
 						<UserRound />
 					</AvatarFallback>

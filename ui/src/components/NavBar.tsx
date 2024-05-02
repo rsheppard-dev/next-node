@@ -41,13 +41,22 @@ export default function NavBar() {
 						</Link>
 					</NavigationMenuItem>
 					{isAuthenticated ? (
-						<NavigationMenuItem>
-							<Link href='/groups' legacyBehavior passHref>
-								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-									Groups
-								</NavigationMenuLink>
-							</Link>
-						</NavigationMenuItem>
+						<>
+							<NavigationMenuItem>
+								<Link href='/groups' legacyBehavior passHref>
+									<NavigationMenuLink className={navigationMenuTriggerStyle()}>
+										Groups
+									</NavigationMenuLink>
+								</Link>
+							</NavigationMenuItem>
+							<NavigationMenuItem>
+								<Link href='/invites' legacyBehavior passHref>
+									<NavigationMenuLink className={navigationMenuTriggerStyle()}>
+										Invites
+									</NavigationMenuLink>
+								</Link>
+							</NavigationMenuItem>
+						</>
 					) : null}
 					<NavigationMenuItem>
 						{isAuthenticated ? (

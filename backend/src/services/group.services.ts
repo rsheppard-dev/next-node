@@ -48,6 +48,18 @@ export async function getGroupWithUserRole(groupId: string, userId: string) {
 	}
 }
 
+export async function getGroupById(groupId: string) {
+	try {
+		const result = await db.query.groups.findFirst({
+			where: eq(groups.id, groupId),
+		});
+
+		return result;
+	} catch (error) {
+		throw error;
+	}
+}
+
 export async function getUsersGroups(userId: string) {
 	try {
 		const results = await db.query.usersToGroups.findMany({
