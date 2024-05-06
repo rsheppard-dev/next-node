@@ -4,7 +4,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { TableCell, TableRow } from './ui/table';
 import { GroupMember } from '@/types/groupMember';
-import { Delete, Edit, Info, UserRound } from 'lucide-react';
+import { Delete, Info, UserRound } from 'lucide-react';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -16,13 +16,61 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from './ui/alert-dialog';
+import ChangeRoleDialog from './ChangeRoleDialog';
+import { Group } from '@/types/group';
+import { Dispatch, SetStateAction } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { removeUserFromGroup } from '@/services/group.services';
 
 type Props = {
 	member: GroupMember;
-	groupRole: 'member' | 'admin';
+	group: Group;
+	setStatusMessage: Dispatch<
+		SetStateAction<{
+			variant: 'destructive' | 'default';
+			title: string;
+			description: string;
+		} | null>
+	>;
 };
 
-export default function GroupMemberTableRow({ member, groupRole }: Props) {
+export default function GroupMemberTableRow({
+	member,
+	group,
+	setStatusMessage,
+}: Props) {
+	const queryClient = useQueryClient();
+
+	const removeMutation = useMutation({
+		mutationFn: () => removeUserFromGroup(group.id, member.id),
+		mutationKey: ['group', group.id],
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['group', group.id] });
+		},
+	});
+
+	async function handleRemoveMember() {
+		try {
+			const response = await removeMutation.mutateAsync();
+
+			if ('error' in response) {
+				throw response.error;
+			}
+
+			setStatusMessage({
+				variant: 'default',
+				title: 'Success',
+				description: `${member.givenName} ${member.familyName} has been removed from the group.`,
+			});
+		} catch (error: any) {
+			setStatusMessage({
+				variant: 'destructive',
+				title: 'Error',
+				description: error?.response?.data?.message ?? 'Something went wrong.',
+			});
+		}
+	}
+
 	return (
 		<TableRow>
 			<TableCell className='flex items-center gap-2'>
@@ -49,16 +97,13 @@ export default function GroupMemberTableRow({ member, groupRole }: Props) {
 					</Link>
 				</Button>
 
-				{groupRole === 'admin' ? (
+				{group.role === 'admin' ? (
 					<>
-						<Button asChild variant='ghost' className='px-2 py-1'>
-							<Link
-								href={`/groups/members/edit?id=${member.id}`}
-								title='Edit Role'
-							>
-								<Edit aria-hidden />
-							</Link>
-						</Button>
+						<ChangeRoleDialog
+							user={member}
+							group={group}
+							setStatusMessage={setStatusMessage}
+						/>
 
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
@@ -80,7 +125,7 @@ export default function GroupMemberTableRow({ member, groupRole }: Props) {
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction onClick={() => {}}>
+									<AlertDialogAction onClick={handleRemoveMember}>
 										Remove
 									</AlertDialogAction>
 								</AlertDialogFooter>

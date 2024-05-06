@@ -11,3 +11,8 @@ export type Group = {
 	iat: number;
 	exp: number;
 };
+
+export enum rolesEnum {
+	admin = 'admin',
+	member = 'member',
+}

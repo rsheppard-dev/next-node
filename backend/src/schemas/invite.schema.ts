@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { rolesEnum } from '../db/schema';
-import e from 'express';
 
 export const createInviteSchema = z.object({
 	body: z.object({

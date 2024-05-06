@@ -87,3 +87,14 @@ export async function getCurrentUser() {
 		throw error;
 	}
 }
+
+export async function getUser(userId: string) {
+	try {
+		const response = await axios(`/api/users/${userId}`);
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to get user', error);
+		throw error;
+	}
+}

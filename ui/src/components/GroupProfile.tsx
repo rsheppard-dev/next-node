@@ -9,15 +9,22 @@ import GroupMemberTable from './GroupMemberTable';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import StatusMessage from './StatusMessage';
 
 type Props = {
 	id: string;
 };
 
 export default function GroupProfile({ id }: Props) {
+	const [statusMessage, setStatusMessage] = useState<{
+		variant: 'destructive' | 'default';
+		title: string;
+		description: string;
+	} | null>(null);
 	const { data: group, isPending } = useQuery<Group>({
 		queryKey: ['group', id],
-		queryFn: () => getGroup(id as string),
+		queryFn: () => getGroup(id),
 	});
 
 	if (isPending) return <div>Loading group profile...</div>;
@@ -40,8 +47,18 @@ export default function GroupProfile({ id }: Props) {
 					</Link>
 				</div>
 			)}
-
-			<GroupMemberTable members={group.members} groupRole={group.role} />
+			{!!statusMessage && (
+				<StatusMessage
+					variant={statusMessage.variant}
+					title={statusMessage.title}
+					description={statusMessage.description}
+				/>
+			)}
+			<GroupMemberTable
+				members={group.members}
+				group={group}
+				setStatusMessage={setStatusMessage}
+			/>
 		</section>
 	);
 }

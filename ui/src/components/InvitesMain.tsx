@@ -19,7 +19,7 @@ export default function InviteMain() {
 	if (isPending) return <div>Loading invites...</div>;
 
 	if (error) return <div>Error loading invites: {error.message}</div>;
-	console.log(invites);
+
 	return (
 		<Tabs defaultValue='sent'>
 			<TabsList>

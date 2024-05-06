@@ -27,6 +27,7 @@ export default async function deserialiseUser(
 
 		if (data && !isExpired) {
 			res.locals.user = data;
+
 			return next();
 		}
 

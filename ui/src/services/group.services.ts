@@ -1,4 +1,8 @@
-import { CreateGroupInput, UpdateGroupInput } from '@/schemas/group.schemas';
+import {
+	ChangeUserRoleInput,
+	CreateGroupInput,
+	UpdateGroupInput,
+} from '@/schemas/group.schemas';
 import { Group } from '@/types/group';
 import axios from '@/utils/axios';
 
@@ -53,6 +57,28 @@ export async function deleteGroup(id: string) {
 		return response.data;
 	} catch (error) {
 		console.log('Failed to delete group', error);
+		throw error;
+	}
+}
+
+export async function updateGroupRole(values: ChangeUserRoleInput) {
+	try {
+		const response = await axios.patch<Group>('/api/groups/role', values);
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to update group role', error);
+		throw error;
+	}
+}
+
+export async function removeUserFromGroup(groupId: string, userId: string) {
+	try {
+		const response = await axios.delete(`/api/groups/${groupId}/${userId}`);
+
+		return response.data;
+	} catch (error) {
+		console.log('Failed to remove user from group', error);
 		throw error;
 	}
 }

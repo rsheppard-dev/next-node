@@ -28,7 +28,7 @@ export default function WelcomeSection() {
 				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
 				<p className='text-xl text-muted-foreground'>You are now logged in.</p>
 				<div className='flex items-center gap-6'>
-					<Link href='/users'>
+					<Link href={`/users/${user?.id}`}>
 						<Button variant={'secondary'}>View Profile</Button>
 					</Link>
 					<Button onClick={handleLogout}>Logout</Button>

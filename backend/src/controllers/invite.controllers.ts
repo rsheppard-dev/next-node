@@ -12,7 +12,6 @@ import {
 import { getGroupById, isUserGroupAdmin } from '../services/group.services';
 import { env } from '../../config/env';
 import sendEmail from '../utils/mailer';
-import { stat } from 'fs';
 
 export async function createInvitesHandler(
 	req: Request<{}, {}, CreateInviteBody>,

@@ -1,3 +1,4 @@
+import { rolesEnum } from '@/types/group';
 import { z } from 'zod';
 
 export const createGroupInputSchema = z.object({
@@ -11,5 +12,12 @@ export const updateGroupInputSchema = z.object({
 	description: z.string().optional(),
 });
 
+export const changeUserRoleInputSchema = z.object({
+	userId: z.string().uuid(),
+	groupId: z.string().uuid(),
+	role: z.enum([rolesEnum.admin, rolesEnum.member]),
+});
+
 export type CreateGroupInput = z.infer<typeof createGroupInputSchema>;
 export type UpdateGroupInput = z.infer<typeof updateGroupInputSchema>;
+export type ChangeUserRoleInput = z.infer<typeof changeUserRoleInputSchema>;

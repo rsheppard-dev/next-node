@@ -5,13 +5,17 @@ import {
 	deleteGroupHandler,
 	getGroupHandler,
 	getUsersGroupsHandler,
+	removeUserFromGroupHandler,
 	updateGroupHandler,
+	updateGroupRoleHandler,
 } from '../controllers/group.controllers';
 import requireUser from '../middleware/requireUser';
 import {
 	createGroupSchema,
 	deleteGroupSchema,
 	getGroupSchema,
+	removeUserFromGroupSchema,
+	updateGroupRoleSchema,
 	updateGroupSchema,
 } from '../schemas/group.schemas';
 
@@ -45,6 +49,20 @@ router.delete(
 	requireUser,
 	validateResource(deleteGroupSchema),
 	deleteGroupHandler
+);
+
+router.patch(
+	'/role',
+	requireUser,
+	validateResource(updateGroupRoleSchema),
+	updateGroupRoleHandler
+);
+
+router.delete(
+	'/:groupId/:userId',
+	requireUser,
+	validateResource(removeUserFromGroupSchema),
+	removeUserFromGroupHandler
 );
 
 export default router;

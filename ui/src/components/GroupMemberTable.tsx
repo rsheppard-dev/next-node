@@ -8,13 +8,26 @@ import {
 } from './ui/table';
 import GroupMemberTableRow from './GroupMemberTableRow';
 import { GroupMember } from '@/types/groupMember';
+import { Group } from '@/types/group';
+import { Dispatch, SetStateAction } from 'react';
 
 type Props = {
 	members: GroupMember[];
-	groupRole: 'member' | 'admin';
+	group: Group;
+	setStatusMessage: Dispatch<
+		SetStateAction<{
+			variant: 'destructive' | 'default';
+			title: string;
+			description: string;
+		} | null>
+	>;
 };
 
-export default function GroupMemberTable({ members, groupRole }: Props) {
+export default function GroupMemberTable({
+	members,
+	group,
+	setStatusMessage,
+}: Props) {
 	return (
 		<Table>
 			<TableCaption>Group members.</TableCaption>
@@ -31,7 +44,8 @@ export default function GroupMemberTable({ members, groupRole }: Props) {
 					<GroupMemberTableRow
 						key={member.id}
 						member={member}
-						groupRole={groupRole}
+						group={group}
+						setStatusMessage={setStatusMessage}
 					/>
 				))}
 			</TableBody>

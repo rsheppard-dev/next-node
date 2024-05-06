@@ -142,7 +142,7 @@ export default function CreateInvitesForm() {
 					)}
 				/>
 				<Button disabled={isSubmitting} type='submit'>
-					Register
+					Invite
 				</Button>
 			</form>
 		</Form>
