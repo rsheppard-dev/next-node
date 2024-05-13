@@ -19,7 +19,7 @@ import {
 	CreateInvitesInput,
 	createInvitesInputSchema,
 } from '@/schemas/invite.schemas';
-import { createInvites } from '@/services/invite.services';
+import { createInvites } from '@/actions/invite.actions';
 import { Textarea } from './ui/textarea';
 import CreateInvitesResponse from './CreateInvitesResponse';
 import { CreateInviteResponse } from '@/types/invite';

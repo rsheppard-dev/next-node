@@ -1,6 +1,7 @@
 import { CreateInvitesInput } from '@/schemas/invite.schemas';
 import { CreateInviteResponse, GetInvitesResponse } from '@/types/invite';
 import axios from '@/utils/axios';
+import { getSession } from './session.actions';
 
 export async function createInvites(values: CreateInvitesInput) {
 	try {
@@ -18,7 +19,13 @@ export async function createInvites(values: CreateInvitesInput) {
 
 export async function getInvites() {
 	try {
-		const response = await axios.get<GetInvitesResponse>('/api/invites');
+		const session = await getSession();
+
+		const response = await axios.get<GetInvitesResponse>('/api/invites', {
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
+		});
 
 		return response.data;
 	} catch (error) {

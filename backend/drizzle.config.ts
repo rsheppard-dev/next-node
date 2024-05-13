@@ -5,9 +5,13 @@ export default {
 	schema: './src/db/schema.ts',
 	out: './src/db/migrations',
 	breakpoints: false,
-	driver: 'pg',
+	dialect: 'postgresql',
 	dbCredentials: {
-		connectionString: env.DATABASE_URL,
+		url: env.DATABASE_URL,
+	},
+	migrations: {
+		table: 'migrations',
+		schema: 'src/db',
 	},
 	verbose: true,
 	strict: true,

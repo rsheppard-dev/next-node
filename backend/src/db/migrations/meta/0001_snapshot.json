@@ -1,10 +1,8 @@
 {
-  "id": "de716e44-ff15-4b8b-8fc0-05c91aa55049",
-  "prevId": "89fdcd79-995f-420b-988d-ac866aba8dc4",
-  "version": "5",
-  "dialect": "pg",
+  "version": "6",
+  "dialect": "postgresql",
   "tables": {
-    "groups": {
+    "public.groups": {
       "name": "groups",
       "schema": "",
       "columns": {
@@ -47,7 +45,7 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "sessions": {
+    "public.sessions": {
       "name": "sessions",
       "schema": "",
       "columns": {
@@ -97,21 +95,21 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -213,14 +211,14 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "users_to_groups": {
+    "public.users_to_groups": {
       "name": "users_to_groups",
       "schema": "",
       "columns": {
@@ -269,28 +267,28 @@
         "users_to_groups_user_id_users_id_fk": {
           "name": "users_to_groups_user_id_users_id_fk",
           "tableFrom": "users_to_groups",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "users_to_groups_group_id_groups_id_fk": {
           "name": "users_to_groups_group_id_groups_id_fk",
           "tableFrom": "users_to_groups",
-          "tableTo": "groups",
           "columnsFrom": [
             "group_id"
           ],
+          "tableTo": "groups",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {
@@ -306,18 +304,21 @@
     }
   },
   "enums": {
-    "roles": {
+    "public.roles": {
       "name": "roles",
-      "values": {
-        "admin": "admin",
-        "member": "member"
-      }
+      "schema": "public",
+      "values": [
+        "admin",
+        "member"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "de716e44-ff15-4b8b-8fc0-05c91aa55049",
+  "prevId": "89fdcd79-995f-420b-988d-ac866aba8dc4"
 }

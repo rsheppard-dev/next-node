@@ -4,7 +4,7 @@ import {
 	ForgotPasswordInput,
 	forgotPasswordInputSchema,
 } from '@/schemas/user.schemas';
-import { forgotPassword } from '@/services/user.services';
+import { forgotPassword } from '@/actions/user.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { isAxiosError } from 'axios';
 import React, { useState } from 'react';

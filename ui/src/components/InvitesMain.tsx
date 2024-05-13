@@ -1,6 +1,6 @@
 'use client';
 
-import { getInvites } from '@/services/invite.services';
+import { getInvites } from '@/actions/invite.actions';
 import { GetInvitesResponse } from '@/types/invite';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

@@ -20,7 +20,7 @@ import ChangeRoleDialog from './ChangeRoleDialog';
 import { Group } from '@/types/group';
 import { Dispatch, SetStateAction } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { removeUserFromGroup } from '@/services/group.services';
+import { removeUserFromGroup } from '@/actions/group.actions';
 
 type Props = {
 	member: GroupMember;

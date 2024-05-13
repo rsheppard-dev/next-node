@@ -16,7 +16,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import StatusMessage from './StatusMessage';
-import { createUser } from '@/services/user.services';
+import { createUser } from '@/actions/user.actions';
 
 export default function CreateUserForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);

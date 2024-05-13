@@ -29,7 +29,7 @@ import {
 	ChangeUserRoleInput,
 	changeUserRoleInputSchema,
 } from '@/schemas/group.schemas';
-import { updateGroupRole } from '@/services/group.services';
+import { updateGroupRole } from '@/actions/group.actions';
 import {
 	Form,
 	FormControl,

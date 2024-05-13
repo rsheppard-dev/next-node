@@ -15,12 +15,12 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import StatusMessage from './StatusMessage';
-import { createUser } from '@/services/user.services';
+import { createUser } from '@/actions/user.actions';
 import {
 	CreateGroupInput,
 	createGroupInputSchema,
 } from '@/schemas/group.schemas';
-import { createGroup } from '@/services/group.services';
+import { createGroup } from '@/actions/group.actions';
 
 export default function CreateGroupForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);

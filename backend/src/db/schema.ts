@@ -127,8 +127,9 @@ export const sessions = pgTable('sessions', {
 	userId: uuid('user_id')
 		.references(() => users.id, { onDelete: 'cascade' })
 		.notNull(),
-	isValid: boolean('is_valid').notNull().default(true),
 	userAgent: varchar('user_agent', { length: 256 }),
+	token: varchar('token', { length: 2000 }),
+	expiresIn: timestamp('expires_in'),
 	createdAt: timestamp('created_at').notNull().defaultNow(),
 	updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

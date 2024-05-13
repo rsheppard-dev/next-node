@@ -23,7 +23,7 @@ import { useSearchParams } from 'next/navigation';
 import Spinner from './Spinner';
 import { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
-import { verifyUser } from '@/services/user.services';
+import { verifyUser } from '@/actions/user.actions';
 import StatusMessage from './StatusMessage';
 
 export default function VerifyResetPasswordForm() {

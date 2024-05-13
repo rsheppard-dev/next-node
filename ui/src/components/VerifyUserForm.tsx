@@ -24,7 +24,7 @@ import Spinner from './Spinner';
 import { useRouter } from 'next/navigation';
 import StatusMessage from './StatusMessage';
 import { isAxiosError } from 'axios';
-import { verifyUser } from '@/services/user.services';
+import { verifyUser } from '@/actions/user.actions';
 
 export default function VerifyUserForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);

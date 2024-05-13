@@ -10,7 +10,7 @@ import axios from 'axios';
 import { CookieOptions } from 'express';
 
 export const accessCookieOptions: CookieOptions = {
-	maxAge: 1000 * 60 * 15, // 15 mins
+	maxAge: 1000 * 5, // 15 mins
 	httpOnly: true,
 	sameSite: 'lax',
 	domain: env.NODE_ENV === 'production' ? 'secretgifter.io' : 'localhost',
@@ -19,7 +19,7 @@ export const accessCookieOptions: CookieOptions = {
 
 export const refreshCookieOptions: CookieOptions = {
 	...accessCookieOptions,
-	maxAge: 3.154e10, // 1 year
+	maxAge: 1000 * 15, //3.154e10, // 1 year
 };
 
 export async function createSession(userId: string, userAgent?: string) {
@@ -42,7 +42,7 @@ export async function createSession(userId: string, userAgent?: string) {
 export async function getUserSessions(userId: string) {
 	try {
 		const results = await db.query.sessions.findMany({
-			where: eq(sessions.userId, userId) && eq(sessions.isValid, true),
+			where: eq(sessions.userId, userId),
 		});
 
 		return results;
@@ -119,7 +119,7 @@ export async function refreshAccessToken(refreshToken: string) {
 
 		const session = await getSessionById(data.sessionId);
 
-		if (!session || !session.isValid) throw new Error('Session not valid');
+		if (!session) throw new Error('Session not found');
 
 		const user = await getUserById(session.userId);
 

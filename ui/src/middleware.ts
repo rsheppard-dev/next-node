@@ -1,49 +1,66 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { updateSession } from './services/session.services';
+import { NextRequest, NextResponse } from 'next/server';
+import {
+	deleteSession,
+	getSession,
+	updateSession,
+} from './actions/session.actions';
 
-const publicPaths = [
+const authPaths = [
 	/^\/login$/,
 	/^\/register(\/.*)?$/,
 	/^\/forgot-password(\/.*)?$/,
 ];
-const protectedPaths = [/^\/users(\/.*)?$/, /^\/groups(\/.*)?$/];
 
-export async function middleware(request: NextRequest) {
-	const path = request.nextUrl.pathname;
-	const isPublicPath = publicPaths.some(pattern => pattern.test(path));
-	const isProtectedPath = protectedPaths.some(pattern => pattern.test(path));
+const publicPaths = ['/'];
 
-	const newToken = await updateSession();
+export default async function middleware(req: NextRequest) {
+	const path = req.nextUrl.pathname;
+	const isAuthPath = authPaths.some(pattern => pattern.test(path));
+	const isPublicPath = publicPaths.includes(path);
 
-	const response = NextResponse.next();
+	const next = NextResponse.next();
 
-	if (newToken) {
-		response.cookies.set({
-			name: 'accessToken',
-			value: newToken,
-			httpOnly: true,
-			secure: true,
-			sameSite: 'lax',
-			maxAge: 1000 * 60 * 15,
-		});
+	const session = await getSession();
+
+	const now = new Date();
+	const expiresIn = new Date(session.tokenExpiry);
+	const isExpired = expiresIn < now;
+
+	try {
+		if (session.isLoggedIn && isExpired) {
+			const newSession = await updateSession(session);
+
+			if (newSession) {
+				next.cookies.set({
+					name: 'sg.session',
+					value: newSession,
+				});
+			} else {
+				await deleteSession(session.id);
+				next.cookies.delete('sg.session');
+				NextResponse.redirect(new URL('/login', req.nextUrl));
+			}
+		}
+	} catch (error) {
+		console.log(error);
 	}
 
-	const isLoggedIn = !!request.cookies.get('accessToken')?.value;
+	// user is trying to access a public path
+	if (isPublicPath) return next;
 
-	// user is already authenticated but trying to access a public path
-	if (isPublicPath && isLoggedIn) {
-		return NextResponse.redirect(new URL('/users', request.nextUrl));
+	// user is already authenticated but trying to access a auth path
+	if (isAuthPath && session.isLoggedIn) {
+		return NextResponse.redirect(new URL('/', req.nextUrl));
 	}
 
 	// user is not authenticated and trying to access a protected path
-	if (isProtectedPath && !isLoggedIn) {
+	if (!isAuthPath && !session.isLoggedIn) {
 		return NextResponse.redirect(
-			new URL(`/login?from=${encodeURIComponent(path)}`, request.nextUrl)
+			new URL(`/login?from=${encodeURIComponent(path)}`, req.nextUrl)
 		);
 	}
 
-	return response;
+	return next;
 }
 
 export const config = {

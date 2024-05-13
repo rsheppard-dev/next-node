@@ -19,7 +19,7 @@ import {
 	UpdateGroupInput,
 	updateGroupInputSchema,
 } from '@/schemas/group.schemas';
-import { updateGroup, getGroup } from '@/services/group.services';
+import { updateGroup, getGroup } from '@/actions/group.actions';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/group';
 

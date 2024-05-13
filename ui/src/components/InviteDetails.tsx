@@ -1,6 +1,6 @@
 'use client';
 
-import { getInvite } from '@/services/invite.services';
+import { getInvite } from '@/actions/invite.actions';
 import { Invite } from '@/types/invite';
 import { useQuery } from '@tanstack/react-query';
 import { notFound } from 'next/navigation';

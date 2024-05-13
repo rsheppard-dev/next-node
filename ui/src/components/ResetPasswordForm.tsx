@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form';
 import { isAxiosError } from 'axios';
 import StatusMessage from './StatusMessage';
-import { resetPassword } from '@/services/user.services';
+import { resetPassword } from '@/actions/user.actions';
 
 export default function ResetPasswordForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);

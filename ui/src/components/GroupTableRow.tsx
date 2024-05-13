@@ -4,7 +4,7 @@ import { TableCell, TableRow } from './ui/table';
 import { Delete, Edit, Info } from 'lucide-react';
 import { Button } from './ui/button';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { deleteGroup } from '@/services/group.services';
+import { deleteGroup } from '@/actions/group.actions';
 import Link from 'next/link';
 import {
 	AlertDialog,

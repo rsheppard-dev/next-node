@@ -5,6 +5,8 @@ import {
 } from '@/schemas/group.schemas';
 import { Group } from '@/types/group';
 import axios from '@/utils/axios';
+import { env } from '../../config/env';
+import { getSession } from './session.actions';
 
 export async function createGroup(values: CreateGroupInput) {
 	try {
@@ -19,9 +21,19 @@ export async function createGroup(values: CreateGroupInput) {
 
 export async function getGroups() {
 	try {
-		const response = await axios.get<Group[]>('/api/groups');
+		const session = await getSession();
 
-		return response.data;
+		const response = await fetch(
+			env.NEXT_PUBLIC_SERVER_ENDPOINT + '/api/groups',
+			{
+				headers: {
+					Authorization: `Bearer ${session.accessToken}`,
+				},
+			}
+		);
+		const data: Group[] = await response.json();
+
+		return data;
 	} catch (error) {
 		console.log('Failed to get groups', error);
 		throw error;

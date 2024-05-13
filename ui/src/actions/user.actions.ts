@@ -1,3 +1,5 @@
+'use server';
+
 import {
 	CreateUserInput,
 	ForgotPasswordInput,
@@ -7,6 +9,7 @@ import {
 } from '@/schemas/user.schemas';
 import { User } from '@/types/user';
 import axios from '@/utils/axios';
+import { env } from '../../config/env';
 
 export async function createUser(values: CreateUserInput) {
 	try {
@@ -90,9 +93,10 @@ export async function getCurrentUser() {
 
 export async function getUser(userId: string) {
 	try {
-		const response = await axios(`/api/users/${userId}`);
-
-		return response.data;
+		const response = await fetch(
+			`${env.NEXT_PUBLIC_SERVER_ENDPOINT}/api/users/${userId}`
+		);
+		return await response.json();
 	} catch (error) {
 		console.log('Failed to get user', error);
 		throw error;

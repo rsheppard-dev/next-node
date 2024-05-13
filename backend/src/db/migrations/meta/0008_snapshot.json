@@ -1,4 +1,6 @@
 {
+  "id": "258d70b5-df1a-4f00-9a0c-3c1360341ba1",
+  "prevId": "2aecdd71-7bb5-4040-a9ab-cc95c050d5d5",
   "version": "6",
   "dialect": "postgresql",
   "tables": {
@@ -31,28 +33,28 @@
         "users_to_notifications_user_id_users_id_fk": {
           "name": "users_to_notifications_user_id_users_id_fk",
           "tableFrom": "users_to_notifications",
+          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "users_to_notifications_notification_id_notifications_id_fk": {
           "name": "users_to_notifications_notification_id_notifications_id_fk",
           "tableFrom": "users_to_notifications",
+          "tableTo": "notifications",
           "columnsFrom": [
             "notification_id"
           ],
-          "tableTo": "notifications",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -99,7 +101,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "groups_id_unique": {
+          "name": "groups_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      }
     },
     "public.invites": {
       "name": "invites",
@@ -142,7 +152,7 @@
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false,
-          "default": "'885182'"
+          "default": "'178081'"
         },
         "email": {
           "name": "email",
@@ -153,6 +163,7 @@
         "role": {
           "name": "role",
           "type": "roles",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'member'"
@@ -172,6 +183,7 @@
         "status": {
           "name": "status",
           "type": "invite_status",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'sent'"
@@ -191,50 +203,60 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "invites_inviter_id_users_id_fk": {
-          "name": "invites_inviter_id_users_id_fk",
-          "tableFrom": "invites",
-          "columnsFrom": [
-            "inviter_id"
+      "indexes": {
+        "invite_email_index": {
+          "name": "invite_email_index",
+          "columns": [
+            "email"
           ],
-          "tableTo": "users",
-          "columnsTo": [
-            "id"
-          ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "isUnique": false
         },
+        "invite_code_index": {
+          "name": "invite_code_index",
+          "columns": [
+            "invite_code"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
         "invites_group_id_groups_id_fk": {
           "name": "invites_group_id_groups_id_fk",
           "tableFrom": "invites",
+          "tableTo": "groups",
           "columnsFrom": [
             "group_id"
           ],
-          "tableTo": "groups",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "invites_invitee_id_users_id_fk": {
           "name": "invites_invitee_id_users_id_fk",
           "tableFrom": "invites",
+          "tableTo": "users",
           "columnsFrom": [
             "invitee_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "invites_id_unique": {
+          "name": "invites_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      }
     },
     "public.notifications": {
       "name": "notifications",
@@ -277,7 +299,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "notifications_id_unique": {
+          "name": "notifications_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      }
     },
     "public.sessions": {
       "name": "sessions",
@@ -296,16 +326,21 @@
           "primaryKey": false,
           "notNull": true
         },
-        "is_valid": {
-          "name": "is_valid",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
         "user_agent": {
           "name": "user_agent",
           "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(2000)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_in": {
+          "name": "expires_in",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         },
@@ -329,19 +364,27 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
+          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "sessions_id_unique": {
+          "name": "sessions_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        }
+      }
     },
     "public.users": {
       "name": "users",
@@ -402,7 +445,7 @@
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": false,
-          "default": "'000922'"
+          "default": "'748155'"
         },
         "password_reset_code": {
           "name": "password_reset_code",
@@ -443,12 +486,19 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
+        "users_id_unique": {
+          "name": "users_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id"
+          ]
+        },
         "users_email_unique": {
           "name": "users_email_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -471,6 +521,7 @@
         "role": {
           "name": "role",
           "type": "roles",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'member'"
@@ -481,28 +532,28 @@
         "users_to_groups_user_id_users_id_fk": {
           "name": "users_to_groups_user_id_users_id_fk",
           "tableFrom": "users_to_groups",
+          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "users_to_groups_group_id_groups_id_fk": {
           "name": "users_to_groups_group_id_groups_id_fk",
           "tableFrom": "users_to_groups",
+          "tableTo": "groups",
           "columnsFrom": [
             "group_id"
           ],
-          "tableTo": "groups",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -539,10 +590,8 @@
   },
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "144cc0ec-d7ff-4025-abf0-f7ca0bf53a57",
-  "prevId": "5899eb43-521c-4ffd-82e5-0f9f74a753aa"
+    "tables": {}
+  }
 }

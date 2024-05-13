@@ -64,12 +64,7 @@ router.delete(
 
 router.get('/me', requireUser, getCurrentUserHandler);
 
-router.get(
-	'/:id',
-	requireUser,
-	validateResource(getUserSchema),
-	getUserHandler
-);
+router.get('/:id', validateResource(getUserSchema), getUserHandler);
 
 router.get(
 	'/verify/:id/:verificationCode',

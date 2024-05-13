@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import {
 	CreateSessionBody,
-	RefreshSessionBody,
+	GetSessionParams,
+	RefreshSessionParams,
 } from '../schemas/session.schemas';
 import {
 	createUser,
@@ -12,6 +13,7 @@ import {
 import {
 	accessCookieOptions,
 	createSession,
+	deleteSession,
 	getGoogleOAuthTokens,
 	getSessionById,
 	getUserSessions,
@@ -56,7 +58,7 @@ export async function createSessionHandler(
 				message,
 			});
 
-		const session = await createSession(user.id, req.get('user-agent'));
+		let session = await createSession(user.id, req.get('user-agent'));
 
 		// sign an access token and a refresh token
 		const accessToken = signJwt(
@@ -76,14 +78,24 @@ export async function createSessionHandler(
 				sessionId: session.id,
 			},
 			'refresh',
-			{ expiresIn: env.REFRESH_TOKEN_TTL }
+			{
+				expiresIn: env.REFRESH_TOKEN_TTL,
+			}
 		);
 
-		res.cookie('accessToken', accessToken, accessCookieOptions);
-		res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+		session.token = refreshToken;
+		session.expiresIn = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
 
-		return res.status(201).send({ accessToken });
+		session = await updateSession(session);
+
+		return res.status(201).send({
+			...removePrivateUserProps(user),
+			sessionId: session.id,
+			accessToken,
+			tokenExpiry: new Date(Date.now() + 1000 * 60 * 15),
+		});
 	} catch (error) {
+		console.log('error', error);
 		return res.status(500).send({
 			statusCode: 500,
 			message: 'Failed to create session',
@@ -93,19 +105,19 @@ export async function createSessionHandler(
 }
 
 export async function refreshSessionHandler(
-	req: Request<{}, {}, RefreshSessionBody>,
+	req: Request<RefreshSessionParams>,
 	res: Response
 ) {
 	try {
-		const { refreshToken } = req.body;
+		const { token } = req.params;
 
-		if (!refreshToken)
+		if (!token)
 			return res.status(401).send({
 				statusCode: 401,
 				message: 'No refresh token provided',
 			});
 
-		const accessToken = await refreshAccessToken(refreshToken);
+		const accessToken = await refreshAccessToken(token);
 
 		if (!accessToken)
 			return res.status(403).send({
@@ -118,6 +130,30 @@ export async function refreshSessionHandler(
 		return res.status(403).send({
 			statusCode: 403,
 			message: 'Failed to refresh access token',
+			error,
+		});
+	}
+}
+
+export async function getSessionHandler(
+	req: Request<GetSessionParams>,
+	res: Response
+) {
+	try {
+		const { id } = req.params;
+		const session = await getSessionById(id);
+
+		if (!session)
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'Session not found',
+			});
+
+		return res.send(session);
+	} catch (error) {
+		return res.status(500).send({
+			statusCode: 500,
+			message: 'Failed to fetch user session.',
 			error,
 		});
 	}
@@ -150,26 +186,20 @@ export async function deleteSessionHandler(
 		const sessionId = res.locals.user.sessionId;
 		const session = await getSessionById(sessionId);
 
-		if (!session) return res.status(404).send('Session not found');
+		if (!session) return res.status(404).send('Session not found.');
 
-		session.isValid = false;
+		const result = await deleteSession(session.id);
 
-		const result = await updateSession(session);
+		if (!result) return res.status(500).send('Failed to delete session.');
 
-		if (!result) return res.status(404).send('Session not found');
+		res.clearCookie('accessToken', { ...accessCookieOptions, maxAge: 0 });
+		res.clearCookie('refreshToken', { ...refreshCookieOptions, maxAge: 0 });
 
-		const cookies = req.cookies;
-
-		if (!cookies) return res.sendStatus(204);
-
-		res.clearCookie('accessToken', { ...accessCookieOptions, maxAge: -1 });
-		res.clearCookie('refreshToken', { ...refreshCookieOptions, maxAge: -1 });
-
-		return res.send({ ...result, message: 'Session invalidated' });
+		return res.send({ ...result, message: 'Session deleted.' });
 	} catch (error) {
 		return res.status(500).send({
 			statusCode: 500,
-			message: 'Failed to delete session',
+			message: 'Failed to delete session.',
 			error,
 		});
 	}

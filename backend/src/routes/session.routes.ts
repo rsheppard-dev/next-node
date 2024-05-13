@@ -2,11 +2,14 @@ import { Router } from 'express';
 import validateResource from '../middleware/validateResource';
 import {
 	createSessionSchema,
+	deleteSessionSchema,
+	getSessionSchema,
 	refreshSessionSchema,
 } from '../schemas/session.schemas';
 import {
 	createSessionHandler,
 	deleteSessionHandler,
+	getSessionHandler,
 	getUserSessionsHandler,
 	googleOAuthHandler,
 	refreshSessionHandler,
@@ -22,13 +25,18 @@ router.post(
 	validateResource(createSessionSchema),
 	createSessionHandler
 );
+router.get('/:id', validateResource(getSessionSchema), getSessionHandler);
 router.get('/', getUserSessionsHandler);
-router.post(
-	'/refresh',
+router.get(
+	'/refresh/:token',
 	validateResource(refreshSessionSchema),
 	refreshSessionHandler
 );
-router.delete('/', requireUser, deleteSessionHandler);
+router.delete(
+	'/:id',
+	validateResource(deleteSessionSchema),
+	deleteSessionHandler
+);
 router.get('/oauth/google', googleOAuthHandler);
 
 export default router;

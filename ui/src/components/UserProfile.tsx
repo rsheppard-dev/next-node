@@ -1,6 +1,6 @@
 'use client';
 
-import { getUser } from '@/services/user.services';
+import { getUser } from '@/actions/user.actions';
 import { User } from '@/types/user';
 import { useQuery } from '@tanstack/react-query';
 import { notFound } from 'next/navigation';

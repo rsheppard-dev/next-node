@@ -16,14 +16,13 @@ import {
 } from '@/components/ui/form';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import StatusMessage from './StatusMessage';
-import { useSessionStore } from '@/store/session.store';
+import { login } from '@/actions/session.actions';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const { login } = useSessionStore(state => state);
 
 	const message = searchParams.get('message');
 
@@ -40,14 +39,14 @@ export default function LoginForm() {
 	async function onSubmit(values: LoginInput) {
 		setErrorMessage(null);
 		try {
-			await login(values);
+			const response = await login(values);
+
+			if (response?.error) return setErrorMessage(response.error);
 
 			const destination = searchParams.get('from') || '/';
 			router.push(destination);
 		} catch (error: any) {
-			setErrorMessage(
-				error?.response?.data?.message ?? 'An unknown error occurred'
-			);
+			setErrorMessage(error?.message ?? 'An unknown error occurred');
 			console.error(error);
 		}
 	}

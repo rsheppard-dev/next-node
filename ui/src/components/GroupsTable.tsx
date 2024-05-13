@@ -1,6 +1,6 @@
 'use client';
 
-import { getGroups } from '@/services/group.services';
+import { getGroups } from '@/actions/group.actions';
 import { Group } from '@/types/group';
 import { useQuery } from '@tanstack/react-query';
 import {

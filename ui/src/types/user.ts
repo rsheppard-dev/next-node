@@ -1,5 +1,6 @@
 export type User = {
 	id: string;
+	sessionId: string;
 	givenName: string;
 	familyName: string;
 	dob?: Date;

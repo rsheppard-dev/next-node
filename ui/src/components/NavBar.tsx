@@ -1,28 +1,12 @@
-'use client';
-
-import { cn } from '@/utils/utils';
 import { ModeToggle } from './ui/mode-toggle';
-import {
-	NavigationMenu,
-	NavigationMenuItem,
-	NavigationMenuLink,
-	NavigationMenuList,
-	navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
 import { Gift } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useSessionStore } from '@/store/session.store';
+import Logout from './auth/LogoutButton';
+import { getSession } from '@/actions/session.actions';
+import { Button } from './ui/button';
 
-export default function NavBar() {
-	const router = useRouter();
-	const { isAuthenticated, logout } = useSessionStore(state => state);
-
-	async function handleLogout() {
-		await logout();
-
-		router.push('/login');
-	}
+export default async function NavBar() {
+	const session = await getSession();
 
 	return (
 		<header className='flex justify-between items-center mb-16'>
@@ -31,62 +15,24 @@ export default function NavBar() {
 				<span className='font-bold'>Secret Gifter</span>
 			</Link>
 
-			<NavigationMenu>
-				<NavigationMenuList className='space-x-6 text-sm'>
-					<NavigationMenuItem>
-						<Link href='/' legacyBehavior passHref>
-							<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-								Home
-							</NavigationMenuLink>
-						</Link>
-					</NavigationMenuItem>
-					{isAuthenticated ? (
-						<>
-							<NavigationMenuItem>
-								<Link href='/groups' legacyBehavior passHref>
-									<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-										Groups
-									</NavigationMenuLink>
-								</Link>
-							</NavigationMenuItem>
-							<NavigationMenuItem>
-								<Link href='/invites' legacyBehavior passHref>
-									<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-										Invites
-									</NavigationMenuLink>
-								</Link>
-							</NavigationMenuItem>
-						</>
-					) : null}
-					<NavigationMenuItem>
-						{isAuthenticated ? (
-							<NavigationMenuLink
-								onClick={handleLogout}
-								className={cn(navigationMenuTriggerStyle(), 'cursor-pointer')}
-							>
-								Logout
-							</NavigationMenuLink>
-						) : (
-							<Link href='/login' legacyBehavior passHref>
-								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-									Login
-								</NavigationMenuLink>
-							</Link>
-						)}
-					</NavigationMenuItem>
-					{!isAuthenticated ? (
-						<NavigationMenuItem>
-							<Link href='/register' legacyBehavior passHref>
-								<NavigationMenuLink className={navigationMenuTriggerStyle()}>
-									Register
-								</NavigationMenuLink>
-							</Link>
-						</NavigationMenuItem>
-					) : null}
-				</NavigationMenuList>
-			</NavigationMenu>
+			<nav className='flex items-center gap-4'>
+				<Link href='/'>Home</Link>
+				{session.isLoggedIn && (
+					<>
+						<Link href='/groups'>Groups</Link>
+						<Link href='/invites'>Invites</Link>
+					</>
+				)}
+			</nav>
 
-			<div>
+			<div className='flex items-center gap-4'>
+				{session.isLoggedIn ? (
+					<Logout />
+				) : (
+					<Button asChild size='sm'>
+						<Link href='/login'>Login</Link>
+					</Button>
+				)}
 				<ModeToggle />
 			</div>
 		</header>
