@@ -44,19 +44,8 @@ import { Dispatch, SetStateAction } from 'react';
 type Props = {
 	user: GroupMember;
 	group: Group;
-	setStatusMessage: Dispatch<
-		SetStateAction<{
-			variant: 'destructive' | 'default';
-			title: string;
-			description: string;
-		} | null>
-	>;
 };
-export default function ChangeRoleDialog({
-	user,
-	group,
-	setStatusMessage,
-}: Props) {
+export default function ChangeRoleDialog({ user, group }: Props) {
 	const form = useForm<ChangeUserRoleInput>({
 		resolver: zodResolver(changeUserRoleInputSchema),
 		defaultValues: {
@@ -76,17 +65,17 @@ export default function ChangeRoleDialog({
 				throw response.error;
 			}
 
-			setStatusMessage({
-				variant: 'default',
-				title: 'Success',
-				description: `${user.givenName} ${user.familyName}'s role has been updated to ${response.role}.`,
-			});
+			// setStatusMessage({
+			// 	variant: 'default',
+			// 	title: 'Success',
+			// 	description: `${user.givenName} ${user.familyName}'s role has been updated to ${response.role}.`,
+			// });
 		} catch (e: any) {
-			setStatusMessage({
-				variant: 'destructive',
-				title: 'Error',
-				description: e?.response?.data?.message ?? 'Something went wrong',
-			});
+			// setStatusMessage({
+			// 	variant: 'destructive',
+			// 	title: 'Error',
+			// 	description: e?.response?.data?.message ?? 'Something went wrong',
+			// });
 		}
 	}
 

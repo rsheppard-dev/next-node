@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/form';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import StatusMessage from './StatusMessage';
-import { login } from '@/actions/session.actions';
+import { loginAction } from '@/actions/session.actions';
+import { useAction } from 'next-safe-action/hooks';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,6 +27,21 @@ export default function LoginForm() {
 
 	const message = searchParams.get('message');
 
+	const { execute, status } = useAction(loginAction, {
+		onSuccess() {
+			const destination = searchParams.get('from') ?? '/';
+			router.push(destination);
+		},
+		onError({ fetchError, serverError }) {
+			const error =
+				fetchError ??
+				serverError ??
+				'Unable to validate credentials. Please try again.';
+
+			setErrorMessage(error);
+		},
+	});
+
 	const form = useForm<LoginInput>({
 		resolver: zodResolver(loginInputSchema),
 		defaultValues: {
@@ -34,21 +50,9 @@ export default function LoginForm() {
 		},
 	});
 
-	const { isSubmitting } = form.formState;
-
-	async function onSubmit(values: LoginInput) {
+	function onSubmit(values: LoginInput) {
 		setErrorMessage(null);
-		try {
-			const response = await login(values);
-
-			if (response?.error) return setErrorMessage(response.error);
-
-			const destination = searchParams.get('from') || '/';
-			router.push(destination);
-		} catch (error: any) {
-			setErrorMessage(error?.message ?? 'An unknown error occurred');
-			console.error(error);
-		}
+		execute(values);
 	}
 	return (
 		<Form {...form}>
@@ -73,7 +77,11 @@ export default function LoginForm() {
 						<FormItem>
 							<FormLabel>Email</FormLabel>
 							<FormControl>
-								<Input type='email' {...field} />
+								<Input
+									disabled={status === 'executing'}
+									type='email'
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -86,13 +94,17 @@ export default function LoginForm() {
 						<FormItem>
 							<FormLabel>Password</FormLabel>
 							<FormControl>
-								<Input type='password' {...field} />
+								<Input
+									disabled={status === 'executing'}
+									type='password'
+									{...field}
+								/>
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
-				<Button type='submit' disabled={isSubmitting}>
+				<Button type='submit' disabled={status === 'executing'}>
 					Login
 				</Button>
 			</form>

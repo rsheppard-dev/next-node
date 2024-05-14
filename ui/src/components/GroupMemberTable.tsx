@@ -14,20 +14,9 @@ import { Dispatch, SetStateAction } from 'react';
 type Props = {
 	members: GroupMember[];
 	group: Group;
-	setStatusMessage: Dispatch<
-		SetStateAction<{
-			variant: 'destructive' | 'default';
-			title: string;
-			description: string;
-		} | null>
-	>;
 };
 
-export default function GroupMemberTable({
-	members,
-	group,
-	setStatusMessage,
-}: Props) {
+export default function GroupMemberTable({ members, group }: Props) {
 	return (
 		<Table>
 			<TableCaption>Group members.</TableCaption>
@@ -41,12 +30,7 @@ export default function GroupMemberTable({
 			</TableHeader>
 			<TableBody>
 				{members?.map(member => (
-					<GroupMemberTableRow
-						key={member.id}
-						member={member}
-						group={group}
-						setStatusMessage={setStatusMessage}
-					/>
+					<GroupMemberTableRow key={member.id} member={member} group={group} />
 				))}
 			</TableBody>
 		</Table>

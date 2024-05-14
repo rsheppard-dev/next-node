@@ -1,8 +1,4 @@
-'use client';
-
 import { getGroups } from '@/actions/group.actions';
-import { Group } from '@/types/group';
-import { useQuery } from '@tanstack/react-query';
 import {
 	Table,
 	TableBody,
@@ -13,20 +9,8 @@ import {
 } from '@/components/ui/table';
 import GroupTableRow from './GroupTableRow';
 
-export default function GroupsTable() {
-	const {
-		data: groups,
-		isPending,
-		isError,
-		error,
-	} = useQuery<Group[]>({
-		queryKey: ['groups'],
-		queryFn: getGroups,
-	});
-
-	if (isPending) return <p>Loading...</p>;
-	if (isError) return <p>Error loading groups. {error.message}</p>;
-
+export default async function GroupsTable() {
+	const groups = await getGroups();
 	return (
 		<Table>
 			<TableCaption>A list of groups.</TableCaption>

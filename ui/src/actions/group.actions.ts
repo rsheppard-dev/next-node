@@ -1,23 +1,36 @@
+'use server';
+
 import {
 	ChangeUserRoleInput,
-	CreateGroupInput,
+	createGroupInputSchema,
+	deleteGroupSchema,
 	UpdateGroupInput,
 } from '@/schemas/group.schemas';
 import { Group } from '@/types/group';
 import axios from '@/utils/axios';
 import { env } from '../../config/env';
 import { getSession } from './session.actions';
+import { authAction } from '@/utils/safe-action';
+import { revalidatePath } from 'next/cache';
 
-export async function createGroup(values: CreateGroupInput) {
-	try {
-		const response = await axios.post<Group>('/api/groups', values);
+export const createGroupAction = authAction(
+	createGroupInputSchema,
+	async (values, session) => {
+		try {
+			const response = await axios.post<Group>('/api/groups', values, {
+				headers: {
+					Authorization: `Bearer ${session.accessToken}`,
+				},
+			});
 
-		return response.data;
-	} catch (error) {
-		console.log('Failed to create group', error);
-		throw error;
+			revalidatePath('/groups');
+
+			return response.data;
+		} catch (error) {
+			throw error;
+		}
 	}
-}
+);
 
 export async function getGroups() {
 	try {
@@ -42,9 +55,18 @@ export async function getGroups() {
 
 export async function getGroup(id: string) {
 	try {
-		const response = await axios.get<Group>(`/api/groups/${id}`);
+		const session = await getSession();
 
-		return response.data;
+		const response = await fetch(
+			`${env.NEXT_PUBLIC_SERVER_ENDPOINT}/api/groups/${id}`,
+			{
+				headers: {
+					Authorization: `Bearer ${session.accessToken}`,
+				},
+			}
+		);
+
+		return (await response.json()) as Group;
 	} catch (error) {
 		console.log('Failed to get group', error);
 		throw error;
@@ -55,6 +77,8 @@ export async function updateGroup(values: UpdateGroupInput) {
 	try {
 		const response = await axios.patch<Group>('/api/groups', values);
 
+		revalidatePath('/groups');
+
 		return response.data;
 	} catch (error) {
 		console.log('Failed to update group', error);
@@ -62,20 +86,31 @@ export async function updateGroup(values: UpdateGroupInput) {
 	}
 }
 
-export async function deleteGroup(id: string) {
-	try {
-		const response = await axios.delete('/api/groups', { data: { id } });
+export const deleteGroupAction = authAction(
+	deleteGroupSchema,
+	async ({ id }, { accessToken }) => {
+		try {
+			const response = await axios.delete('/api/groups', {
+				data: { id },
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
 
-		return response.data;
-	} catch (error) {
-		console.log('Failed to delete group', error);
-		throw error;
+			revalidatePath('/groups');
+
+			return response.data;
+		} catch (error) {
+			throw error;
+		}
 	}
-}
+);
 
 export async function updateGroupRole(values: ChangeUserRoleInput) {
 	try {
 		const response = await axios.patch<Group>('/api/groups/role', values);
+
+		revalidatePath('/groups');
 
 		return response.data;
 	} catch (error) {
@@ -87,6 +122,8 @@ export async function updateGroupRole(values: ChangeUserRoleInput) {
 export async function removeUserFromGroup(groupId: string, userId: string) {
 	try {
 		const response = await axios.delete(`/api/groups/${groupId}/${userId}`);
+
+		revalidatePath(`/groups/${groupId}`);
 
 		return response.data;
 	} catch (error) {

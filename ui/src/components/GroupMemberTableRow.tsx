@@ -18,56 +18,33 @@ import {
 } from './ui/alert-dialog';
 import ChangeRoleDialog from './ChangeRoleDialog';
 import { Group } from '@/types/group';
-import { Dispatch, SetStateAction } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { removeUserFromGroup } from '@/actions/group.actions';
 
 type Props = {
 	member: GroupMember;
 	group: Group;
-	setStatusMessage: Dispatch<
-		SetStateAction<{
-			variant: 'destructive' | 'default';
-			title: string;
-			description: string;
-		} | null>
-	>;
 };
 
-export default function GroupMemberTableRow({
-	member,
-	group,
-	setStatusMessage,
-}: Props) {
-	const queryClient = useQueryClient();
-
-	const removeMutation = useMutation({
-		mutationFn: () => removeUserFromGroup(group.id, member.id),
-		mutationKey: ['group', group.id],
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['group', group.id] });
-		},
-	});
-
+export default function GroupMemberTableRow({ member, group }: Props) {
 	async function handleRemoveMember() {
 		try {
-			const response = await removeMutation.mutateAsync();
+			const response = await removeUserFromGroup(group.id, member.id);
 
 			if ('error' in response) {
 				throw response.error;
 			}
 
-			setStatusMessage({
-				variant: 'default',
-				title: 'Success',
-				description: `${member.givenName} ${member.familyName} has been removed from the group.`,
-			});
+			// 	setStatusMessage({
+			// 		variant: 'default',
+			// 		title: 'Success',
+			// 		description: `${member.givenName} ${member.familyName} has been removed from the group.`,
+			// 	});
 		} catch (error: any) {
-			setStatusMessage({
-				variant: 'destructive',
-				title: 'Error',
-				description: error?.response?.data?.message ?? 'Something went wrong.',
-			});
+			// setStatusMessage({
+			// 	variant: 'destructive',
+			// 	title: 'Error',
+			// 	description: error?.response?.data?.message ?? 'Something went wrong.',
+			// });
 		}
 	}
 
@@ -99,11 +76,7 @@ export default function GroupMemberTableRow({
 
 				{group.role === 'admin' ? (
 					<>
-						<ChangeRoleDialog
-							user={member}
-							group={group}
-							setStatusMessage={setStatusMessage}
-						/>
+						<ChangeRoleDialog user={member} group={group} />
 
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
@@ -125,9 +98,7 @@ export default function GroupMemberTableRow({
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
-									<AlertDialogAction onClick={handleRemoveMember}>
-										Remove
-									</AlertDialogAction>
+									<AlertDialogAction>Remove</AlertDialogAction>
 								</AlertDialogFooter>
 							</AlertDialogContent>
 						</AlertDialog>

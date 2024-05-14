@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import {
 	CreateSessionBody,
+	DeleteSessionParams,
 	GetSessionParams,
 	RefreshSessionParams,
 } from '../schemas/session.schemas';
@@ -33,7 +34,7 @@ export async function createSessionHandler(
 	res: Response
 ) {
 	const { email, password } = req.body;
-	const message = 'Incorrect email or password';
+	const message = 'Incorrect email or password. Please try again.';
 
 	try {
 		const user = await getUserByEmail(email);
@@ -47,7 +48,7 @@ export async function createSessionHandler(
 		if (!user.isVerified)
 			return res.status(403).send({
 				statusCode: 403,
-				message: 'Email has not been verified',
+				message: 'Email has not been verified. Please check your email.',
 			});
 
 		const isPasswordValid = await validatePassword(password, user.password);
@@ -98,7 +99,7 @@ export async function createSessionHandler(
 		console.log('error', error);
 		return res.status(500).send({
 			statusCode: 500,
-			message: 'Failed to create session',
+			message: 'Something went wrong. Failed to create session.',
 			error,
 		});
 	}
@@ -114,7 +115,7 @@ export async function refreshSessionHandler(
 		if (!token)
 			return res.status(401).send({
 				statusCode: 401,
-				message: 'No refresh token provided',
+				message: 'No refresh token provided.',
 			});
 
 		const accessToken = await refreshAccessToken(token);
@@ -122,14 +123,14 @@ export async function refreshSessionHandler(
 		if (!accessToken)
 			return res.status(403).send({
 				statusCode: 403,
-				message: 'Failed to refresh access token',
+				message: 'Failed to refresh access token.',
 			});
 
 		return res.send({ accessToken });
 	} catch (error) {
 		return res.status(403).send({
 			statusCode: 403,
-			message: 'Failed to refresh access token',
+			message: 'Failed to refresh access token.',
 			error,
 		});
 	}
@@ -146,7 +147,7 @@ export async function getSessionHandler(
 		if (!session)
 			return res.status(404).send({
 				statusCode: 404,
-				message: 'Session not found',
+				message: 'Session not found.',
 			});
 
 		return res.send(session);
@@ -172,28 +173,25 @@ export async function getUserSessionsHandler(
 	} catch (error) {
 		return res.status(500).send({
 			statusCode: 500,
-			message: 'Failed to fetch sessions',
+			message: 'Failed to fetch sessions.',
 			error,
 		});
 	}
 }
 
 export async function deleteSessionHandler(
-	req: Request,
-	res: Response<{}, { user: PublicUser }>
+	req: Request<DeleteSessionParams>,
+	res: Response
 ) {
 	try {
-		const sessionId = res.locals.user.sessionId;
-		const session = await getSessionById(sessionId);
+		const { id } = req.params;
+		const session = await getSessionById(id);
 
 		if (!session) return res.status(404).send('Session not found.');
 
 		const result = await deleteSession(session.id);
 
 		if (!result) return res.status(500).send('Failed to delete session.');
-
-		res.clearCookie('accessToken', { ...accessCookieOptions, maxAge: 0 });
-		res.clearCookie('refreshToken', { ...refreshCookieOptions, maxAge: 0 });
 
 		return res.send({ ...result, message: 'Session deleted.' });
 	} catch (error) {
@@ -215,13 +213,13 @@ export async function googleOAuthHandler(req: Request, res: Response) {
 		if (!googleUser)
 			return res.status(401).send({
 				statusCode: 401,
-				message: 'Failed to authenticate with Google',
+				message: 'Failed to authenticate with Google.',
 			});
 
 		if (!googleUser.email_verified)
 			return res.status(403).send({
 				statusCode: 403,
-				message: 'Google account has not been verified',
+				message: 'Google account has not been verified.',
 			});
 
 		let user = await getUserByEmail(googleUser.email);
@@ -272,7 +270,7 @@ export async function googleOAuthHandler(req: Request, res: Response) {
 	} catch (error) {
 		return res.status(401).send({
 			statusCode: 401,
-			message: 'Failed to authenticate with Google',
+			message: 'Failed to authenticate with Google.',
 			error,
 		});
 	}

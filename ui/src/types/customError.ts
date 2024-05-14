@@ -1,0 +1,4 @@
+interface CustomError extends Error {
+	statusCode: number;
+	message: string;
+}

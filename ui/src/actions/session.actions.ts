@@ -4,9 +4,11 @@ import { cookies } from 'next/headers';
 import { getIronSession, IronSession, sealData } from 'iron-session';
 import { SessionData, SessionResponse } from '@/types/session';
 import { defaultSession, sessionOptions } from '../../config/session.config';
-import { LoginInput } from '@/schemas/session.schemas';
+import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import { env } from '../../config/env';
 import { User } from '@/types/user';
+import { action } from '@/utils/safe-action';
+import axios from '@/utils/axios';
 
 export async function getSession() {
 	const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -16,45 +18,31 @@ export async function getSession() {
 	return session;
 }
 
-export async function login(credentials: LoginInput) {
+export const loginAction = action(loginInputSchema, async credentials => {
 	try {
 		const session = await getSession();
 
-		const response = await fetch(
-			env.NEXT_PUBLIC_SERVER_ENDPOINT + '/api/sessions',
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(credentials),
-			}
-		);
+		const response = await axios.post<
+			User & { accessToken: string; tokenExpiry: Date }
+		>('/api/sessions', credentials);
 
-		if (!response.ok)
-			return {
-				error: 'Incorrect email or password.',
-			};
+		const data = response.data;
 
-		const user: User & { accessToken: string; tokenExpiry: Date } =
-			await response.json();
-
-		session.id = user.sessionId;
-		session.userId = user.id;
-		session.givenName = user.givenName;
-		session.familyName = user.familyName;
-		session.email = user.email;
-		session.picture = user.picture;
-		session.accessToken = user.accessToken;
-		session.tokenExpiry = user.tokenExpiry;
+		session.id = data.sessionId;
+		session.userId = data.id;
+		session.givenName = data.givenName;
+		session.familyName = data.familyName;
+		session.email = data.email;
+		session.picture = data.picture;
+		session.accessToken = data.accessToken;
+		session.tokenExpiry = data.tokenExpiry;
 		session.isLoggedIn = true;
 
 		await session.save();
 	} catch (error) {
-		console.log('Error logging in', error);
 		throw error;
 	}
-}
+});
 
 export async function logout() {
 	try {

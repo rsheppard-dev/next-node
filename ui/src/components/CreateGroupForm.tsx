@@ -15,17 +15,30 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import StatusMessage from './StatusMessage';
-import { createUser } from '@/actions/user.actions';
 import {
 	CreateGroupInput,
 	createGroupInputSchema,
 } from '@/schemas/group.schemas';
-import { createGroup } from '@/actions/group.actions';
+import { createGroupAction } from '@/actions/group.actions';
+import { useAction } from 'next-safe-action/hooks';
 
 export default function CreateGroupForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
+	const { execute, status } = useAction(createGroupAction, {
+		onSuccess() {
+			router.push('/groups');
+		},
+		onError({ fetchError, serverError }) {
+			const error =
+				fetchError ??
+				serverError ??
+				'Unable to validate credentials. Please try again.';
+
+			setErrorMessage(error);
+		},
+	});
 
 	const form = useForm<CreateGroupInput>({
 		resolver: zodResolver(createGroupInputSchema),
@@ -35,22 +48,9 @@ export default function CreateGroupForm() {
 		},
 	});
 
-	const { isSubmitting } = form.formState;
-
-	async function onSubmit(values: CreateGroupInput) {
+	function onSubmit(values: CreateGroupInput) {
 		setErrorMessage(null);
-
-		try {
-			const response = await createGroup(values);
-
-			if ('error' in response) {
-				throw response.error;
-			}
-
-			router.push('/groups');
-		} catch (e: any) {
-			setErrorMessage(e?.response?.data?.message ?? 'Something went wrong');
-		}
+		execute(values);
 	}
 	return (
 		<Form {...form}>
@@ -72,7 +72,7 @@ export default function CreateGroupForm() {
 						<FormItem>
 							<FormLabel>Group Name</FormLabel>
 							<FormControl>
-								<Input {...field} />
+								<Input disabled={status === 'executing'} {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -85,13 +85,13 @@ export default function CreateGroupForm() {
 						<FormItem>
 							<FormLabel>Description</FormLabel>
 							<FormControl>
-								<Input {...field} />
+								<Input disabled={status === 'executing'} {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
-				<Button disabled={isSubmitting} type='submit'>
+				<Button disabled={status === 'executing'} type='submit'>
 					Create
 				</Button>
 			</form>

@@ -18,6 +18,11 @@ export const changeUserRoleInputSchema = z.object({
 	role: z.enum([rolesEnum.admin, rolesEnum.member]),
 });
 
+export const deleteGroupSchema = z.object({
+	id: z.string().uuid(),
+});
+
 export type CreateGroupInput = z.infer<typeof createGroupInputSchema>;
 export type UpdateGroupInput = z.infer<typeof updateGroupInputSchema>;
 export type ChangeUserRoleInput = z.infer<typeof changeUserRoleInputSchema>;
+export type DeleteGroup = z.infer<typeof deleteGroupSchema>;
