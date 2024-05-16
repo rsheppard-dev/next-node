@@ -1,12 +1,14 @@
+'use client';
+
 import { ModeToggle } from './ui/mode-toggle';
 import { Gift } from 'lucide-react';
 import Link from 'next/link';
 import Logout from './auth/LogoutButton';
-import { getSession } from '@/actions/session.actions';
 import { Button } from './ui/button';
+import useSession from '@/hooks/useSession';
 
-export default async function NavBar() {
-	const session = await getSession();
+export default function NavBar() {
+	const { session } = useSession();
 
 	return (
 		<header className='flex justify-between items-center mb-16'>

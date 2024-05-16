@@ -1,10 +1,10 @@
-import { InviteResponse } from '@/types/invite';
+import { CreateInviteResponse } from '@/types/invite';
 import { CircleCheck, CircleX } from 'lucide-react';
 import React from 'react';
 import { Table, TableBody, TableCell, TableRow } from './ui/table';
 
 type Props = {
-	data: InviteResponse;
+	data: CreateInviteResponse;
 };
 export default function CreateInvitesResponse({ data }: Props) {
 	return (

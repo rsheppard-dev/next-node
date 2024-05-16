@@ -1,13 +1,12 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import {
 	CreateSessionBody,
-	DeleteSessionParams,
-	GetSessionParams,
 	RefreshSessionParams,
 } from '../schemas/session.schemas';
 import {
 	createUser,
 	getUserByEmail,
+	getUserById,
 	removePrivateUserProps,
 	updateUser,
 } from '../services/user.services';
@@ -28,6 +27,8 @@ import { signJwt } from '../utils/jwt';
 import { env } from '../../config/env';
 import { PublicUser } from '../db/schema';
 import jwt from 'jsonwebtoken';
+import { unsealData } from 'iron-session';
+import { SessionData, sessionOptions } from '../../config/session.config';
 
 export async function createSessionHandler(
 	req: Request<{}, {}, CreateSessionBody>,
@@ -93,7 +94,7 @@ export async function createSessionHandler(
 			...removePrivateUserProps(user),
 			sessionId: session.id,
 			accessToken,
-			tokenExpiry: new Date(Date.now() + 1000 * 60 * 15),
+			tokenExpiry: new Date(Date.now() + 1000 * 10),
 		});
 	} catch (error) {
 		console.log('error', error);
@@ -136,21 +137,42 @@ export async function refreshSessionHandler(
 	}
 }
 
-export async function getSessionHandler(
-	req: Request<GetSessionParams>,
-	res: Response
-) {
+export async function getSessionHandler(req: Request, res: Response) {
 	try {
-		const { id } = req.params;
-		const session = await getSessionById(id);
+		const sessionCookie = req.cookies['sg.session'];
+
+		const session = (await unsealData(
+			sessionCookie,
+			sessionOptions
+		)) as SessionData;
 
 		if (!session)
+			return res.status(401).send({
+				statusCode: 401,
+				message: 'User not logged in.',
+			});
+
+		const dbSession = await getSessionById(session.id);
+
+		if (!dbSession)
 			return res.status(404).send({
 				statusCode: 404,
 				message: 'Session not found.',
 			});
 
-		return res.send(session);
+		const user = await getUserById(session.userId);
+
+		if (!user)
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'User not found.',
+			});
+
+		return res.send({
+			...session,
+			refreshToken: dbSession.token,
+			expiresIn: dbSession.expiresIn,
+		});
 	} catch (error) {
 		return res.status(500).send({
 			statusCode: 500,
@@ -179,21 +201,41 @@ export async function getUserSessionsHandler(
 	}
 }
 
-export async function deleteSessionHandler(
-	req: Request<DeleteSessionParams>,
-	res: Response
-) {
+export async function deleteSessionHandler(req: Request, res: Response) {
 	try {
-		const { id } = req.params;
+		const sessionCookie = req.cookies['sg.session'];
+
+		const { id } = (await unsealData(
+			sessionCookie,
+			sessionOptions
+		)) as SessionData;
+
+		console.log('id', id);
+
 		const session = await getSessionById(id);
 
-		if (!session) return res.status(404).send('Session not found.');
+		console.log('session', session);
+
+		if (!session)
+			return res.status(404).send({
+				statusCode: 404,
+				message: 'Session not found.',
+			});
 
 		const result = await deleteSession(session.id);
 
-		if (!result) return res.status(500).send('Failed to delete session.');
+		if (!result)
+			return res.status(500).send({
+				statusCode: 500,
+				message: 'Failed to delete session.',
+			});
 
-		return res.send({ ...result, message: 'Session deleted.' });
+		res.clearCookie('sg.session', {
+			...sessionOptions.cookieOptions,
+			maxAge: -1,
+		});
+
+		return res.send({ ...result });
 	} catch (error) {
 		return res.status(500).send({
 			statusCode: 500,

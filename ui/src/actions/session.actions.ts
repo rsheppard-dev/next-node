@@ -2,13 +2,14 @@
 
 import { cookies } from 'next/headers';
 import { getIronSession, IronSession, sealData } from 'iron-session';
-import { SessionData, SessionResponse } from '@/types/session';
-import { defaultSession, sessionOptions } from '../../config/session.config';
-import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
-import { env } from '../../config/env';
+import { sessionOptions } from '../../config/session.config';
+import { loginInputSchema } from '@/schemas/session.schemas';
 import { User } from '@/types/user';
-import { action } from '@/utils/safe-action';
-import axios from '@/utils/axios';
+import { action, authAction } from '@/utils/safe-action';
+import fetcher from '@/utils/fetcher';
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
+import { defaultSession } from '@/utils/defaults';
 
 export async function getSession() {
 	const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -22,11 +23,12 @@ export const loginAction = action(loginInputSchema, async credentials => {
 	try {
 		const session = await getSession();
 
-		const response = await axios.post<
+		const data = await fetcher<
 			User & { accessToken: string; tokenExpiry: Date }
-		>('/api/sessions', credentials);
-
-		const data = response.data;
+		>('/api/sessions', {
+			method: 'POST',
+			body: credentials,
+		});
 
 		session.id = data.sessionId;
 		session.userId = data.id;
@@ -39,32 +41,45 @@ export const loginAction = action(loginInputSchema, async credentials => {
 		session.isLoggedIn = true;
 
 		await session.save();
+
+		const { save, updateConfig, destroy, ...sessionResponse } = session;
+
+		revalidatePath('/');
+
+		return sessionResponse as SessionData;
 	} catch (error) {
 		throw error;
 	}
 });
 
-export async function logout() {
+export const logoutAction = authAction(z.object({}), async (_, session) => {
 	try {
-		const session = await getSession();
+		// delete session from database
+		await deleteSession();
 
-		await deleteSession(session.id);
-
+		// destroy session cookie
 		session.destroy();
+
+		revalidatePath('/');
 	} catch (error) {
 		console.log('Error logging out', error);
 		throw error;
 	}
-}
+});
 
-export async function deleteSession(sessionId: string) {
+export async function deleteSession() {
+	const cookie = cookies().get('sg.session');
+
 	try {
-		await fetch(
-			`${env.NEXT_PUBLIC_SERVER_ENDPOINT}/api/sessions/${sessionId}`,
-			{
-				method: 'DELETE',
-			}
-		);
+		await fetcher('/api/sessions', {
+			method: 'DELETE',
+			credentials: 'include',
+			headers: {
+				Cookie: `${cookie?.name}=${cookie?.value}`,
+			},
+		});
+
+		revalidatePath('/');
 	} catch (error) {
 		console.log('Error deleting session', error);
 		throw error;
@@ -73,20 +88,19 @@ export async function deleteSession(sessionId: string) {
 
 export async function getSessionData() {
 	try {
-		const session = await getSession();
+		const cookie = cookies().get('sg.session');
 
-		const response = await fetch(
-			env.NEXT_PUBLIC_SERVER_ENDPOINT + '/api/sessions/' + session.id,
-			{
-				headers: {
-					Authorization: `Bearer ${session.accessToken}`,
-				},
-			}
-		);
+		const session = await fetcher<SessionResponse>('/api/sessions', {
+			credentials: 'include',
+			headers: {
+				Cookie: `${cookie?.name}=${cookie?.value}`,
+			},
+			next: {
+				tags: ['session'],
+			},
+		});
 
-		const data = (await response.json()) as SessionResponse;
-
-		return data;
+		return session;
 	} catch (error) {
 		console.log('Error getting refresh token', error);
 		throw error;
@@ -95,13 +109,13 @@ export async function getSessionData() {
 
 export async function updateSession(session: IronSession<SessionData>) {
 	try {
-		const { token, expiresIn } = await getSessionData();
+		const { refreshToken, expiresIn } = await getSessionData();
 
 		const sessionExpired = new Date(expiresIn) < new Date();
 
-		if (!token || sessionExpired) return null;
+		if (!refreshToken || sessionExpired) return null;
 
-		const accessToken = await refreshSession(token);
+		const accessToken = await refreshSession(refreshToken);
 
 		if (!accessToken) return null;
 
@@ -116,8 +130,7 @@ export async function updateSession(session: IronSession<SessionData>) {
 
 		return newSession;
 	} catch (error) {
-		console.log(error);
-		await logout();
+		throw error;
 	}
 }
 
@@ -125,11 +138,9 @@ export async function refreshSession(
 	refreshToken: string
 ): Promise<string | undefined> {
 	try {
-		const response = await fetch(
-			`${env.NEXT_PUBLIC_SERVER_ENDPOINT}/api/sessions/refresh/${refreshToken}`
+		const { accessToken } = await fetcher<{ accessToken: string }>(
+			`/api/sessions/refresh/${refreshToken}`
 		);
-
-		const { accessToken } = await response.json();
 
 		return accessToken;
 	} catch (error) {

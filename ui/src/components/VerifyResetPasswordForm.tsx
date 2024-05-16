@@ -18,12 +18,15 @@ import {
 	InputOTPGroup,
 	InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { VerifyInput, verifyInputSchema } from '@/schemas/user.schemas';
+import {
+	VerifyResetPasswordCodeInput,
+	verifyResetPasswordCodeInputSchema,
+} from '@/schemas/user.schemas';
 import { useSearchParams } from 'next/navigation';
 import Spinner from './Spinner';
 import { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
-import { verifyUser } from '@/actions/user.actions';
+import { verifyResetPasswordCode, verifyUser } from '@/actions/user.actions';
 import StatusMessage from './StatusMessage';
 
 export default function VerifyResetPasswordForm() {
@@ -35,8 +38,8 @@ export default function VerifyResetPasswordForm() {
 	const email = searchParams.get('email') || '';
 	const code = searchParams.get('code') || '';
 
-	const form = useForm<VerifyInput>({
-		resolver: zodResolver(verifyInputSchema),
+	const form = useForm<VerifyResetPasswordCodeInput>({
+		resolver: zodResolver(verifyResetPasswordCodeInputSchema),
 		defaultValues: {
 			email,
 			code,
@@ -47,11 +50,11 @@ export default function VerifyResetPasswordForm() {
 	const watchedCode = form.watch('code');
 
 	const onSubmit = useCallback(
-		async (values: VerifyInput) => {
+		async (values: VerifyResetPasswordCodeInput) => {
 			setErrorMessage(null);
 
 			try {
-				await verifyUser(values);
+				await verifyResetPasswordCode(values);
 
 				router.push(
 					`/forgot-password/reset?email=${encodeURIComponent(

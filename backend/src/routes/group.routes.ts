@@ -45,7 +45,7 @@ router.patch(
 );
 
 router.delete(
-	'/',
+	'/:id',
 	requireUser,
 	validateResource(deleteGroupSchema),
 	deleteGroupHandler

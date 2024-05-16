@@ -1,9 +1,12 @@
 import VerifyUserForm from '@/components/VerifyUserForm';
+import { Suspense } from 'react';
 
 export default function verifyUserPage() {
 	return (
 		<section>
-			<VerifyUserForm />
+			<Suspense>
+				<VerifyUserForm />
+			</Suspense>
 		</section>
 	);
 }

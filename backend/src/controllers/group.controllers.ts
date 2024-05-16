@@ -16,7 +16,7 @@ import {
 } from '../services/group.services';
 import {
 	CreateGroupBody,
-	DeleteGroupBody,
+	DeleteGroupParams,
 	GetGroupParams,
 	RemoveUserFromGroupParams,
 	UpdateGroupBody,
@@ -125,11 +125,11 @@ export async function updateGroupHandler(
 }
 
 export async function deleteGroupHandler(
-	req: Request<{}, {}, DeleteGroupBody>,
+	req: Request<DeleteGroupParams>,
 	res: Response<{}, { user: User }>
 ) {
 	try {
-		const { id } = req.body;
+		const { id } = req.params;
 		const { id: userId } = res.locals.user;
 
 		const group = getGroupWithUserRole(id, userId);

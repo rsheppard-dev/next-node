@@ -9,7 +9,7 @@ export const createGroupSchema = z.object({
 });
 
 export const deleteGroupSchema = z.object({
-	body: z.object({
+	params: z.object({
 		id: z.string({ required_error: 'ID is required' }).uuid(),
 	}),
 });
@@ -44,7 +44,7 @@ export const removeUserFromGroupSchema = z.object({
 });
 
 export type CreateGroupBody = z.infer<typeof createGroupSchema>['body'];
-export type DeleteGroupBody = z.infer<typeof deleteGroupSchema>['body'];
+export type DeleteGroupParams = z.infer<typeof deleteGroupSchema>['params'];
 export type GetGroupParams = z.infer<typeof getGroupSchema>['params'];
 export type UpdateGroupBody = z.infer<typeof updateGroupSchema>['body'];
 export type UpdateGroupRoleBody = z.infer<typeof updateGroupRoleSchema>['body'];

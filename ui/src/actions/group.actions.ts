@@ -12,12 +12,15 @@ import { env } from '../../config/env';
 import { getSession } from './session.actions';
 import { authAction } from '@/utils/safe-action';
 import { revalidatePath } from 'next/cache';
+import fetcher from '@/utils/fetcher';
 
 export const createGroupAction = authAction(
 	createGroupInputSchema,
 	async (values, session) => {
 		try {
-			const response = await axios.post<Group>('/api/groups', values, {
+			const groups = await fetcher<Group>('/api/groups', {
+				method: 'POST',
+				body: values,
 				headers: {
 					Authorization: `Bearer ${session.accessToken}`,
 				},
@@ -25,7 +28,7 @@ export const createGroupAction = authAction(
 
 			revalidatePath('/groups');
 
-			return response.data;
+			return groups;
 		} catch (error) {
 			throw error;
 		}
@@ -36,17 +39,18 @@ export async function getGroups() {
 	try {
 		const session = await getSession();
 
-		const response = await fetch(
-			env.NEXT_PUBLIC_SERVER_ENDPOINT + '/api/groups',
-			{
-				headers: {
-					Authorization: `Bearer ${session.accessToken}`,
-				},
-			}
-		);
-		const data: Group[] = await response.json();
+		const groups = await fetcher<Group[]>('/api/groups', {
+			headers: {
+				Authorization: `Bearer ${session.accessToken}`,
+			},
+			next: {
+				tags: ['groups'],
+			},
+		});
 
-		return data;
+		revalidatePath('/groups');
+
+		return groups;
 	} catch (error) {
 		console.log('Failed to get groups', error);
 		throw error;
@@ -65,6 +69,8 @@ export async function getGroup(id: string) {
 				},
 			}
 		);
+
+		revalidatePath('/groups/' + id);
 
 		return (await response.json()) as Group;
 	} catch (error) {
@@ -90,8 +96,8 @@ export const deleteGroupAction = authAction(
 	deleteGroupSchema,
 	async ({ id }, { accessToken }) => {
 		try {
-			const response = await axios.delete('/api/groups', {
-				data: { id },
+			const group = await fetcher<Group>(`/api/groups/${id}`, {
+				method: 'DELETE',
 				headers: {
 					Authorization: `Bearer ${accessToken}`,
 				},
@@ -99,7 +105,7 @@ export const deleteGroupAction = authAction(
 
 			revalidatePath('/groups');
 
-			return response.data;
+			return group;
 		} catch (error) {
 			throw error;
 		}

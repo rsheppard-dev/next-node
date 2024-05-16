@@ -15,20 +15,26 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
-import StatusMessage from './StatusMessage';
+import StatusMessage from '../StatusMessage';
 import { loginAction } from '@/actions/session.actions';
 import { useAction } from 'next-safe-action/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const router = useRouter();
 	const searchParams = useSearchParams();
+	const queryClient = useQueryClient();
 
 	const message = searchParams.get('message');
 
-	const { execute, status } = useAction(loginAction, {
+	const { execute: login, status } = useAction(loginAction, {
 		onSuccess() {
+			queryClient.invalidateQueries({
+				queryKey: ['session'],
+			});
+
 			const destination = searchParams.get('from') ?? '/';
 			router.push(destination);
 		},
@@ -52,7 +58,7 @@ export default function LoginForm() {
 
 	function onSubmit(values: LoginInput) {
 		setErrorMessage(null);
-		execute(values);
+		login(values);
 	}
 	return (
 		<Form {...form}>

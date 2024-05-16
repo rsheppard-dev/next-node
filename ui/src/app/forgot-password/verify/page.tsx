@@ -1,9 +1,12 @@
 import VerifyResetPasswordForm from '@/components/VerifyResetPasswordForm';
+import { Suspense } from 'react';
 
 export default function verifyResetPasswordPage() {
 	return (
 		<section>
-			<VerifyResetPasswordForm />
+			<Suspense>
+				<VerifyResetPasswordForm />
+			</Suspense>
 		</section>
 	);
 }

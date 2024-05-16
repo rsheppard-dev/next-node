@@ -11,3 +11,15 @@ export const sessionOptions: SessionOptions = {
 		maxAge: 1000 * 60 * 60 * 24 * 365,
 	},
 };
+
+export type SessionData = {
+	id: string;
+	userId: string;
+	givenName: string;
+	familyName: string;
+	email: string;
+	picture?: string;
+	isLoggedIn: boolean;
+	accessToken: string;
+	tokenExpiry: Date;
+};

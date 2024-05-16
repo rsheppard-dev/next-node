@@ -23,15 +23,8 @@ export const getSessionSchema = z.object({
 	}),
 });
 
-export const deleteSessionSchema = z.object({
-	params: z.object({
-		id: z.string({ required_error: 'Session ID is required' }).uuid(),
-	}),
-});
-
 export type CreateSessionBody = z.infer<typeof createSessionSchema>['body'];
 export type GetSessionParams = z.infer<typeof getSessionSchema>['params'];
-export type DeleteSessionParams = z.infer<typeof deleteSessionSchema>['params'];
 export type RefreshSessionParams = z.infer<
 	typeof refreshSessionSchema
 >['params'];

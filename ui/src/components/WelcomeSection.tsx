@@ -1,13 +1,13 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Logout from './auth/LogoutButton';
-import { SessionData } from '@/types/session';
+import useSession from '@/hooks/useSession';
 
-type Props = {
-	session: SessionData;
-};
+export default function WelcomeSection() {
+	const { session } = useSession();
 
-export default function WelcomeSection({ session }: Props) {
 	if (session.isLoggedIn)
 		return (
 			<section className='flex flex-col gap-8'>

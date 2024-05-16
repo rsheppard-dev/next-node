@@ -4,6 +4,7 @@ import {
 	getSession,
 	updateSession,
 } from './actions/session.actions';
+import { cookies } from 'next/headers';
 
 const authPaths = [
 	/^\/login$/,
@@ -36,13 +37,14 @@ export default async function middleware(req: NextRequest) {
 					value: newSession,
 				});
 			} else {
-				await deleteSession(session.id);
-				next.cookies.delete('sg.session');
+				await deleteSession();
+				cookies().delete('sg.session');
 				NextResponse.redirect(new URL('/login', req.nextUrl));
 			}
 		}
 	} catch (error) {
 		console.log(error);
+		cookies().delete('sg.session');
 	}
 
 	// user is trying to access a public path

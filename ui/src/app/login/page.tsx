@@ -1,11 +1,14 @@
-import LoginForm from '@/components/LoginForm';
+import LoginForm from '@/components/auth/LoginForm';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 export default function loginPage() {
 	return (
 		<section className='space-y-6'>
-			<LoginForm />
+			<Suspense>
+				<LoginForm />
+			</Suspense>
 			<Separator />
 			<div className='space-y-2'>
 				<p className='text-sm'>

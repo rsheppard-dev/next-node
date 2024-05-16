@@ -1,4 +1,4 @@
-export type SessionData = {
+type SessionData = {
 	id: string;
 	userId: string;
 	givenName: string;
@@ -10,12 +10,7 @@ export type SessionData = {
 	tokenExpiry: Date;
 };
 
-export type SessionResponse = {
-	id: string;
-	userId: string;
-	userAgent?: string;
-	token: string;
+type SessionResponse = SessionData & {
+	refreshToken: string;
 	expiresIn: Date;
-	createdAt: Date;
-	updatedAt: Date;
 };
