@@ -3,39 +3,41 @@
 import { cookies } from 'next/headers';
 import { getIronSession, IronSession, sealData } from 'iron-session';
 import { sessionOptions } from '../../config/session.config';
-import { loginInputSchema } from '@/schemas/session.schemas';
-import { User } from '@/types/user';
-import { action, authAction } from '@/utils/safe-action';
+import { LoginInput } from '@/schemas/session.schemas';
 import fetcher from '@/utils/fetcher';
 import { revalidatePath } from 'next/cache';
-import { z } from 'zod';
 import { defaultSession } from '@/utils/defaults';
 
 export async function getSession() {
 	const session = await getIronSession<SessionData>(cookies(), sessionOptions);
 
-	if (!session.isLoggedIn) session.isLoggedIn = defaultSession.isLoggedIn;
+	if (!session.isLoggedIn) {
+		Object.assign(session, defaultSession);
+	}
 
 	return session;
 }
 
-export const loginAction = action(loginInputSchema, async credentials => {
+export async function login(credentials: LoginInput) {
 	try {
 		const session = await getSession();
 
-		const data = await fetcher<
-			User & { accessToken: string; tokenExpiry: Date }
-		>('/api/sessions', {
+		const data = await fetcher<{
+			id: string;
+			user: User;
+			accessToken: string;
+			tokenExpiry: Date;
+		}>('/api/sessions', {
 			method: 'POST',
 			body: credentials,
 		});
 
-		session.id = data.sessionId;
-		session.userId = data.id;
-		session.givenName = data.givenName;
-		session.familyName = data.familyName;
-		session.email = data.email;
-		session.picture = data.picture;
+		session.id = data.id;
+		session.user.id = data.user.id;
+		session.user.givenName = data.user.givenName;
+		session.user.familyName = data.user.familyName;
+		session.user.email = data.user.email;
+		session.user.picture = data.user.picture;
 		session.accessToken = data.accessToken;
 		session.tokenExpiry = data.tokenExpiry;
 		session.isLoggedIn = true;
@@ -50,10 +52,12 @@ export const loginAction = action(loginInputSchema, async credentials => {
 	} catch (error) {
 		throw error;
 	}
-});
+}
 
-export const logoutAction = authAction(z.object({}), async (_, session) => {
+export async function logout() {
 	try {
+		const session = await getSession();
+
 		// delete session from database
 		await deleteSession();
 
@@ -61,11 +65,13 @@ export const logoutAction = authAction(z.object({}), async (_, session) => {
 		session.destroy();
 
 		revalidatePath('/');
+
+		return defaultSession;
 	} catch (error) {
 		console.log('Error logging out', error);
 		throw error;
 	}
-});
+}
 
 export async function deleteSession() {
 	const cookie = cookies().get('sg.session');

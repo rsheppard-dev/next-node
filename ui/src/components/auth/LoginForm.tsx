@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -16,37 +16,17 @@ import {
 } from '@/components/ui/form';
 import { LoginInput, loginInputSchema } from '@/schemas/session.schemas';
 import StatusMessage from '../StatusMessage';
-import { loginAction } from '@/actions/session.actions';
-import { useAction } from 'next-safe-action/hooks';
-import { useQueryClient } from '@tanstack/react-query';
+import useSession from '@/hooks/useSession';
 
 export default function LoginForm() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-	const router = useRouter();
+	const {
+		loginMutation: { isPending, mutate: login },
+	} = useSession();
 	const searchParams = useSearchParams();
-	const queryClient = useQueryClient();
 
 	const message = searchParams.get('message');
-
-	const { execute: login, status } = useAction(loginAction, {
-		onSuccess() {
-			queryClient.invalidateQueries({
-				queryKey: ['session'],
-			});
-
-			const destination = searchParams.get('from') ?? '/';
-			router.push(destination);
-		},
-		onError({ fetchError, serverError }) {
-			const error =
-				fetchError ??
-				serverError ??
-				'Unable to validate credentials. Please try again.';
-
-			setErrorMessage(error);
-		},
-	});
 
 	const form = useForm<LoginInput>({
 		resolver: zodResolver(loginInputSchema),
@@ -83,11 +63,7 @@ export default function LoginForm() {
 						<FormItem>
 							<FormLabel>Email</FormLabel>
 							<FormControl>
-								<Input
-									disabled={status === 'executing'}
-									type='email'
-									{...field}
-								/>
+								<Input disabled={isPending} type='email' {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
@@ -100,17 +76,13 @@ export default function LoginForm() {
 						<FormItem>
 							<FormLabel>Password</FormLabel>
 							<FormControl>
-								<Input
-									disabled={status === 'executing'}
-									type='password'
-									{...field}
-								/>
+								<Input disabled={isPending} type='password' {...field} />
 							</FormControl>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
-				<Button type='submit' disabled={status === 'executing'}>
+				<Button type='submit' disabled={isPending}>
 					Login
 				</Button>
 			</form>

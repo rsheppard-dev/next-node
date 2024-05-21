@@ -8,7 +8,7 @@ import { Button } from './ui/button';
 import useSession from '@/hooks/useSession';
 
 export default function NavBar() {
-	const { session } = useSession();
+	const { isLoggedIn } = useSession();
 
 	return (
 		<header className='flex justify-between items-center mb-16'>
@@ -19,7 +19,7 @@ export default function NavBar() {
 
 			<nav className='flex items-center gap-4'>
 				<Link href='/'>Home</Link>
-				{session.isLoggedIn && (
+				{isLoggedIn && (
 					<>
 						<Link href='/groups'>Groups</Link>
 						<Link href='/invites'>Invites</Link>
@@ -28,7 +28,7 @@ export default function NavBar() {
 			</nav>
 
 			<div className='flex items-center gap-4'>
-				{session.isLoggedIn ? (
+				{isLoggedIn ? (
 					<Logout />
 				) : (
 					<Button asChild size='sm'>

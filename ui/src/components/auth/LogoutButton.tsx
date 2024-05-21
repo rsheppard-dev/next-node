@@ -2,32 +2,18 @@
 
 import React from 'react';
 import { Button } from '../ui/button';
-import { logoutAction } from '@/actions/session.actions';
-import { useAction } from 'next-safe-action/hooks';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
+import useSession from '@/hooks/useSession';
 
 export default function Logout() {
 	const router = useRouter();
-	const queryClient = useQueryClient();
-
-	const { execute: logout, status } = useAction(logoutAction, {
-		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ['session'],
-			});
-
-			router.push('/');
-		},
-		onError: ({ serverError, fetchError }) => {
-			console.error(serverError ?? fetchError);
-			router.push('/');
-		},
-	});
+	const {
+		logoutMutation: { mutate: logout, isPending },
+	} = useSession();
 
 	return (
-		<form action={logout}>
-			<Button size='sm' disabled={status === 'executing'}>
+		<form action={() => logout()}>
+			<Button size='sm' disabled={isPending}>
 				Logout
 			</Button>
 		</form>

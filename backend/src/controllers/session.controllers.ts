@@ -91,8 +91,8 @@ export async function createSessionHandler(
 		session = await updateSession(session);
 
 		return res.status(201).send({
-			...removePrivateUserProps(user),
-			sessionId: session.id,
+			user: removePrivateUserProps(user),
+			id: session.id,
 			accessToken,
 			tokenExpiry: new Date(Date.now() + 1000 * 10),
 		});
@@ -210,11 +210,7 @@ export async function deleteSessionHandler(req: Request, res: Response) {
 			sessionOptions
 		)) as SessionData;
 
-		console.log('id', id);
-
 		const session = await getSessionById(id);
-
-		console.log('session', session);
 
 		if (!session)
 			return res.status(404).send({

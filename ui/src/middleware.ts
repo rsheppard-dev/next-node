@@ -4,7 +4,6 @@ import {
 	getSession,
 	updateSession,
 } from './actions/session.actions';
-import { cookies } from 'next/headers';
 
 const authPaths = [
 	/^\/login$/,
@@ -31,20 +30,18 @@ export default async function middleware(req: NextRequest) {
 		if (session.isLoggedIn && isExpired) {
 			const newSession = await updateSession(session);
 
-			if (newSession) {
+			if (!!newSession) {
 				next.cookies.set({
 					name: 'sg.session',
 					value: newSession,
 				});
 			} else {
 				await deleteSession();
-				cookies().delete('sg.session');
-				NextResponse.redirect(new URL('/login', req.nextUrl));
+				next.cookies.delete({ name: 'sg.session', maxAge: 0 });
 			}
 		}
 	} catch (error) {
 		console.log(error);
-		cookies().delete('sg.session');
 	}
 
 	// user is trying to access a public path

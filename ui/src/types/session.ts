@@ -1,10 +1,14 @@
-type SessionData = {
+type SessionUser = {
 	id: string;
-	userId: string;
 	givenName: string;
 	familyName: string;
 	email: string;
 	picture?: string;
+};
+
+type SessionData = {
+	id: string;
+	user: SessionUser;
 	isLoggedIn: boolean;
 	accessToken: string;
 	tokenExpiry: Date;

@@ -6,17 +6,15 @@ import Logout from './auth/LogoutButton';
 import useSession from '@/hooks/useSession';
 
 export default function WelcomeSection() {
-	const { session } = useSession();
+	const { isLoggedIn, user } = useSession();
 
-	if (session.isLoggedIn)
+	if (isLoggedIn)
 		return (
 			<section className='flex flex-col gap-8'>
-				<h1 className='text-4xl font-bold'>
-					Welcome back {session.givenName}!
-				</h1>
+				<h1 className='text-4xl font-bold'>Welcome back {user?.givenName}!</h1>
 				<p className='text-xl text-muted-foreground'>You are now logged in.</p>
 				<div className='flex items-center gap-6'>
-					<Link href={`/users/${session.userId}`}>
+					<Link href={`/users/${user?.id}`}>
 						<Button variant={'secondary'}>View Profile</Button>
 					</Link>
 					<Logout />
