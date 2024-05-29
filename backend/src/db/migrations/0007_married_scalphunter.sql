@@ -1,3 +1,0 @@
-ALTER TABLE "invites" ALTER COLUMN "invite_code" SET DEFAULT '425672';
-ALTER TABLE "sessions" ALTER COLUMN "token" SET DATA TYPE varchar(512);
-ALTER TABLE "users" ALTER COLUMN "verification_code" SET DEFAULT '390243';
